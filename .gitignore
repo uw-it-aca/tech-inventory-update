@@ -87,3 +87,10 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+*.swp
+/bin/
+/client_secret.json
+/include/
+/local/
+/pip-selfcheck.json
