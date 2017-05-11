@@ -3,6 +3,7 @@ import yaml
 import os
 import re
 import json
+import boto3
 import base64
 import string
 
@@ -14,11 +15,29 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
 CLIENT_SECRET_FILE = 'client_secret.json'
+GITHUB_AUTH = None
+GOOGLE_JSON = None
+
+
+if 'GITHUB_AUTH_ENC' in os.environ:
+    kms = boto3.client('kms')
+    ENCRYPTED = os.environ['GITHUB_AUTH_ENC']
+    raw = base64.b64decode(ENCRYPTED)
+    GITHUB_AUTH = kms.decrypt(CiphertextBlob=raw)['Plaintext']
+
+    ENCRYPTED = os.environ['GOOGLE_CREDENTIALS_ENC']
+    raw = base64.b64decode(ENCRYPTED)
+    GOOGLE_JSON = kms.decrypt(CiphertextBlob=raw)['Plaintext']
 
 
 def get_credentials():
-    credentials = ServiceAccountCredentials.from_json_keyfile_name(
-        'client_secret.json', SCOPES)
+    if GOOGLE_JSON:
+        json_data = json.loads(GOOGLE_JSON)
+        credentials = ServiceAccountCredentials.from_json_keyfile_dict(
+            json_data, SCOPES)
+    else:
+        credentials = ServiceAccountCredentials.from_json_keyfile_name(
+            'client_secret.json', SCOPES)
     return credentials
 
 
@@ -55,7 +74,11 @@ def get_has_statics(url):
                            'https://api.github.com/repos/')
     api_path += '/git/trees/master?recursive=1'
 
-    access_token = os.environ.get('GITHUB_AUTH', None)
+    if GITHUB_AUTH:
+        access_token = GITHUB_AUTH
+    else:
+        access_token = os.environ.get('GITHUB_AUTH', None)
+
     if not access_token:
         raise Exception("Need a GITHUB_AUTH env var.  Should be formatted "
                         " as <username>:<personal access token>")
@@ -206,7 +229,7 @@ def get_cell_name(row, col):
     return "%s%s" % (_cell_names[col], row)
 
 
-def main():
+def main(*args, **kwargs):
     sheet_id = os.environ.get('GOOGLE_SHEET_ID', None)
     if not sheet_id:
         raise Exception("Missing ENV: GOOGLE_SHEET_ID")
