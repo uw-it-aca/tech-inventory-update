@@ -61,10 +61,12 @@ def get_coveralls_data(url):
                    "?filter=all&sSearch=%2Fstatic%2F")
     (headers, content) = httplib2.Http().request(details_url, 'GET')
 
-    data = json.loads(content)
     has_js_coverage = False
-    if data['iTotalRecords'] > 0:
-        has_js_coverage = True
+    status = headers['status']
+    if '200' == status:
+        data = json.loads(content)
+        if data['iTotalRecords'] > 0:
+            has_js_coverage = True
 
     return (coverage, has_js_coverage)
 
