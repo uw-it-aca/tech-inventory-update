@@ -57,9 +57,9 @@ def get_coveralls_data(url):
 
     # Look for static content in the build...
     commit_id = data['commit_sha']
-    detail_url = 'https://coveralls.io/builds/%s.json?paths=*%2Fstatic%2F*' % (
-        commit_id)
-    (headers, content) = httplib2.Http().request(detail_url, 'GET')
+    details_url = ('https://coveralls.io/builds/' + commit_id + '.json'
+                   '?paths=*%2Fstatic%2F*')
+    (headers, content) = httplib2.Http().request(details_url, 'GET')
 
     has_js_coverage = False
     status = headers['status']
