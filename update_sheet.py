@@ -20,7 +20,7 @@ GOOGLE_JSON = None
 
 
 if 'GITHUB_AUTH_ENC' in os.environ:
-    kms = boto3.client('kms')
+    kms = boto3.client('kms', region_name='us-west-2')
     ENCRYPTED = os.environ['GITHUB_AUTH_ENC']
     raw = base64.b64decode(ENCRYPTED)
     GITHUB_AUTH = kms.decrypt(CiphertextBlob=raw)['Plaintext']
@@ -57,16 +57,16 @@ def get_coveralls_data(url):
 
     # Look for static content in the build...
     commit_id = data['commit_sha']
-    details_url = ("https://coveralls.io/builds/"+commit_id+"/source_files.js"
-                   "?filter=all&sSearch=%2Fstatic%2F")
-    (headers, content) = httplib2.Http().request(details_url, 'GET')
+    detail_url = 'https://coveralls.io/builds/%s.json?paths=*%2Fstatic%2F*' % (
+        commit_id)
+    (headers, content) = httplib2.Http().request(detail_url, 'GET')
 
     has_js_coverage = False
     status = headers['status']
     if '200' == status:
         data = json.loads(content)
-        if data['iTotalRecords'] > 0:
-            has_js_coverage = True
+        if data.get('selected_source_files_count', 0) > 0:
+            has_js_coverage = data.get('paths_covered_percent', 0) > 0
 
     return (coverage, has_js_coverage)
 
