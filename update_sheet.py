@@ -52,6 +52,9 @@ def get_coveralls_data(url):
         return (0, False)
 
     data = json.loads(content)
+    if data is None:
+        return (0, False)
+
     raw = data['covered_percent']
     coverage = int(float(raw) * 10) / 10.0
 
@@ -168,7 +171,8 @@ def get_sheets_service():
     discoveryUrl = ('https://sheets.googleapis.com/$discovery/rest?'
                     'version=v4')
     service = discovery.build('sheets', 'v4', http=http,
-                              discoveryServiceUrl=discoveryUrl)
+                              discoveryServiceUrl=discoveryUrl,
+                              cache_discovery=False)
 
     return service
 
