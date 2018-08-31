@@ -122,8 +122,8 @@ def get_travis_config_values(repos):
     values = {
         'Python 2.7': False,
         'Python 3.6': False,
-        'PEP 8': False,
-        'No (non migration) PEP8 exclusions': False,
+        'Pycodestyle': False,
+        'No (non migration) Pycodestyle exclusions': False,
         'JSHint': False,
         'Recess': False,
         'Coveralls': False,
@@ -141,8 +141,8 @@ def get_travis_config_values(repos):
             values['Python 3.6'] = True
 
     for step in config['script']:
-        if 0 == step.find('pep8'):
-            values['PEP 8'] = True
+        if 0 == step.find('pycodestyle'):
+            values['Pycodestyle'] = True
 
             clean_pep8 = True
             matches = re.match('.*--exclude=(.*)', step)
@@ -152,7 +152,7 @@ def get_travis_config_values(repos):
                     if path.find('migrations') == -1:
                         clean_pep8 = False
 
-            values['No (non migration) PEP8 exclusions'] = clean_pep8
+            values['No (non migration) Pycodestyle exclusions'] = clean_pep8
         if 0 == step.find('jshint'):
             values['JSHint'] = True
 
