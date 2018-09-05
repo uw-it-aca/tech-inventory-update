@@ -135,14 +135,14 @@ def get_has_statics(url):
 
 
 def get_travis_config_values(url):
-    travis_path = url.replace(GITHUB_URL, 'https://raw.githubusercontent.com')
-    travis_path = travis_path + '/master/.travis.yml'
+    git_file_url = url.replace(GITHUB_URL, 'https://raw.githubusercontent.com')
+    travis_url = git_file_url + '/master/.travis.yml'
+    setup_url = git_file_url + '/master/setup.py'
 
-    (headers, content) = httplib2.Http().request(travis_path, 'GET')
-
-    config = yaml.load(content)
+    (headers, content) = httplib2.Http().request(travis_url, 'GET')
 
     values = {
+        'Travis CI': False,
         'Python 2.7': False,
         'Python 3.6': False,
         'Pycodestyle': False,
@@ -150,12 +150,16 @@ def get_travis_config_values(url):
         'JSHint': False,
         'Recess': False,
         'Coveralls': False,
+        'PyPI': False,
     }
 
     status = headers['status']
     if '200' != status:
         return values
 
+    values['Travis CI'] = True
+
+    config = yaml.load(content)
     python_versions = config['python']
     for version in python_versions:
         if "2.7" == version:
@@ -185,6 +189,10 @@ def get_travis_config_values(url):
     for step in config.get('after_script', []):
         if 0 == step.find('coveralls'):
             values['Coveralls'] = True
+
+    if config.get('deploy', {}).get('provider', '') == 'pypi':
+        values['PyPI'] = True
+
     return values
 
 
