@@ -15,6 +15,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
 CLIENT_SECRET_FILE = 'client_secret.json'
+GITHUB_URL = 'https://github.com'
 GITHUB_AUTH = None
 GOOGLE_JSON = None
 
@@ -37,13 +38,36 @@ def get_credentials():
             json_data, SCOPES)
     else:
         credentials = ServiceAccountCredentials.from_json_keyfile_name(
-            'client_secret.json', SCOPES)
+            CLIENT_SECRET_FILE, SCOPES)
     return credentials
 
 
+def github_request(api_path):
+    if GITHUB_AUTH:
+        access_token = GITHUB_AUTH
+    else:
+        access_token = os.environ.get('GITHUB_AUTH', None)
+
+    if not access_token:
+        raise Exception(
+            'Need a GITHUB_AUTH env var, formatted as <username>:<token>')
+
+    url = 'https://api.github.com/repos' + api_path
+    auth = base64.encodestring(access_token)
+    request_headers = {'Authorization': 'Basic ' + auth}
+    (headers, content) = httplib2.Http().request(
+        url, 'GET', headers=request_headers)
+
+    status = headers['status']
+    if '200' != status:
+        raise Exception(
+            'Request failed for URL %s, with status %s' % (url, status))
+
+    return content
+
+
 def get_coveralls_data(url):
-    coveralls_path = url.replace('https://github.com',
-                                 'https://coveralls.io/github/')
+    coveralls_path = url.replace(GITHUB_URL, 'https://coveralls.io/github/')
     coveralls_path += ".json"
     (headers, content) = httplib2.Http().request(coveralls_path, 'GET')
 
@@ -74,24 +98,24 @@ def get_coveralls_data(url):
     return (coverage, has_js_coverage)
 
 
+def get_current_version(url):
+    api_path = url.replace(GITHUB_URL, '')
+    api_path += '/releases'
+
+    content = github_request(api_path)
+    data = json.loads(content)
+
+    if len(data):
+        return data[0].get('tag_name', '')
+
+    return ''
+
+
 def get_has_statics(url):
-    api_path = url.replace('https://github.com/',
-                           'https://api.github.com/repos/')
+    api_path = url.replace(GITHUB_URL, '')
     api_path += '/git/trees/master?recursive=1'
 
-    if GITHUB_AUTH:
-        access_token = GITHUB_AUTH
-    else:
-        access_token = os.environ.get('GITHUB_AUTH', None)
-
-    if not access_token:
-        raise Exception("Need a GITHUB_AUTH env var.  Should be formatted "
-                        " as <username>:<personal access token>")
-    auth = base64.encodestring(access_token)
-    request_headers = {'Authorization': 'Basic ' + auth}
-    (headers, content) = httplib2.Http().request(api_path, 'GET',
-                                                 headers=request_headers)
-
+    content = github_request(api_path)
     data = json.loads(content)
     has_js = False
     has_css = False
@@ -107,12 +131,11 @@ def get_has_statics(url):
         if re.match('.*\.less$', path):
             has_css = True
 
-    return(has_js, has_css)
+    return (has_js, has_css)
 
 
-def get_travis_config_values(repos):
-    travis_path = repos.replace('https://github.com',
-                                'https://raw.githubusercontent.com')
+def get_travis_config_values(url):
+    travis_path = url.replace(GITHUB_URL, 'https://raw.githubusercontent.com')
     travis_path = travis_path + '/master/.travis.yml'
 
     (headers, content) = httplib2.Http().request(travis_path, 'GET')
@@ -180,17 +203,18 @@ def get_sheets_service():
 def get_column_lookup(sheet_id):
     service = get_sheets_service()
     cell_index = {}
-    rangeName = 'Sheet1!E2:BA2'
+    rangeName = 'Sheet1!D2:BA2'
     result = service.spreadsheets().values().get(
         spreadsheetId=sheet_id, range=rangeName).execute()
+
     values = result.get('values', [])
     if not values:
         raise Exception("Can't find column headers")
-    else:
-        index = 5
-        for row in values[0]:
-            cell_index[row] = index
-            index += 1
+
+    index = 4
+    for row in values[0]:
+        cell_index[row] = index
+        index += 1
 
     return cell_index
 
@@ -211,7 +235,7 @@ def get_github_urls(sheet_id):
         if not len(row):
             continue
         url = row[0]
-        if url.find('https://github.com') != 0:
+        if url.find(GITHUB_URL) != 0:
             continue
 
         url = re.sub('/$', '', url)
@@ -255,6 +279,7 @@ def main(*args, **kwargs):
         (coverage, js_coverage) = get_coveralls_data(url)
         (has_js, has_css) = get_has_statics(url)
 
+        travis_data['Current Version'] = get_current_version(url)
         travis_data['Coverage %'] = coverage
         travis_data['Has Javascript Coverage'] = js_coverage
 
