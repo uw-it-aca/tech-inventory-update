@@ -1,3 +1,4 @@
+from google.auth.transport.requests import AuthorizedSession
 import google.auth
 import gspread
 import requests
@@ -27,13 +28,13 @@ def get_google_client():
             raw = base64.b64decode(os.environ['GOOGLE_CREDENTIALS_ENC'])
             text = KMS_CLIENT.decrypt(CiphertextBlob=raw)['Plaintext']
 
-            with open(GOOGLE_KEY_PATH, 'w') as f:
+            with open(GOOGLE_KEY_PATH, 'wb') as f:
                 f.write(text)
 
             os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_KEY_PATH
 
         # export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json
-        credentials = google.auth.default(scopes=[GOOGLE_SCOPES])
+        credentials, project_id = google.auth.default(scopes=[GOOGLE_SCOPES])
 
         if not credentials:
             raise Exception('Need a GOOGLE_APPLICATION_CREDENTIALS env var')
@@ -43,7 +44,8 @@ def get_google_client():
         except OSError:
             pass
 
-        GOOGLE_CLIENT = gspread.authorize(credentials)
+        GOOGLE_CLIENT = gspread.Client(auth=credentials)
+        GOOGLE_CLIENT.session = AuthorizedSession(credentials)
     return GOOGLE_CLIENT
 
 
