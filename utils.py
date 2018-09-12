@@ -11,6 +11,7 @@ GOOGLE_SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
 GOOGLE_KEY_PATH = '/tmp/key.json'
 GOOGLE_CLIENT = None
 GITHUB_CLIENT = None
+COVERALLS_CLIENT = None
 KMS_CLIENT = boto3.client('kms', region_name='us-west-2')
 
 
@@ -49,7 +50,7 @@ def get_google_client():
     return GOOGLE_CLIENT
 
 
-def get_github_client():
+def github_request(url, headers={}):
     global GITHUB_CLIENT
     if GITHUB_CLIENT is None:
         if 'GITHUB_AUTH_ENC' in os.environ:
@@ -60,18 +61,25 @@ def get_github_client():
 
         if not access_token:
             raise Exception(
-                'Need a GITHUB_AUTH env var, formatted as <username>:<token>')
+                'Need a GITHUB_AUTH env var, containing an access token')
 
-        auth = base64.encodestring(access_token)
         GITHUB_CLIENT = requests.Session()
         GITHUB_CLIENT.headers.update({
-            'Authorization': 'Basic {}'.format(auth)})
-    return GITHUB_CLIENT
+            'Authorization': 'token {}'.format(access_token.decode('utf-8')),
+            'Accept': 'application/vnd.github.v3+json',
+            'User-Agent': 'uw-it-aca/tech-inventory-updater'})
+
+    resp = GITHUB_CLIENT.get(url, headers=headers)
+    if (resp.status_code == 200 or resp.status_code == 404):
+        return resp
+
+    raise Exception(
+        'GitHub request failed, URL: {}, Status: {}, Response: {}'.format(
+            url, resp.status_code, resp.content))
 
 
-def build_cell_names():
-    cells = [None]
-    for c1 in ('', 'A', 'B'):
-        for c2 in (list(string.ascii_uppercase)):
-            cells.append(c1+c2)
-    return cells
+def get_coveralls_client():
+    global COVERALLS_CLIENT
+    if COVERALLS_CLIENT is None:
+        COVERALLS_CLIENT = requests.Session()
+    return COVERALLS_CLIENT
