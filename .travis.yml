@@ -1,0 +1,8 @@
+language: python
+python:
+- '3.6'
+before_script:
+  - pip install -e .
+  - pip install pycodestyle
+script:
+  - pycodestyle update_github_sheet.py
