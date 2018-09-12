@@ -114,6 +114,12 @@ def get_setup_values(url):
         results = DJANGO_RE.findall(resp.content.decode('utf-8'))
         if len(results):
             values['Django'] = results[0] if (len(results[0])) else 'Unpinned'
+    elif resp.status_code == 404:
+        requirements_url = git_file_url + '/master/requirements.txt'
+        resp = github_request(requirements_url)
+        if resp.status_code == 200:
+            values['setup.py'] = 'requirements.txt'
+
     return values
 
 
@@ -123,8 +129,8 @@ def get_travis_values(repo):
     git_file_url = url.replace(
         'https://github.com', 'https://raw.githubusercontent.com')
     travis_url = git_file_url + '/master/.travis.yml'
-
     (has_js, has_css) = get_has_statics(repo['trees_url'])
+    python_versions = []
 
     values = {
         'Travis CI': False,
@@ -143,11 +149,8 @@ def get_travis_values(repo):
     resp = github_request(travis_url)
     if resp.status_code == 200:
         config = yaml.load(resp.content)
-        pythons = config.get('python', [])
-        values['Python'] = ', '.join(sorted(pythons, reverse=True))
-
-        if lang == 'Python' or len(pythons):
-            values.update(get_setup_values(url))
+        python_versions = config.get('python', [])
+        values['Python'] = ', '.join(sorted(python_versions, reverse=True))
 
         for step in config.get('script', []):
             if 0 == step.find('pycodestyle'):
@@ -177,6 +180,10 @@ def get_travis_values(repo):
 
         values['Version'] = get_current_version(repo['releases_url'])
         values['Travis CI'] = True
+
+    if lang == 'Python' or len(python_versions):
+        values.update(get_setup_values(url))
+
     return values
 
 
