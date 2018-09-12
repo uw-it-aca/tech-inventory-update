@@ -9,6 +9,8 @@ SHEET_NAME = 'GitHub'
 START_ROW = 2
 DJANGO_RE = re.compile(r'[\'"]django([=>].*)?[\'"]', re.I)
 PYCODESTYLE_RE = re.compile(r'.*--exclude=(.*)')
+JS_RE = re.compile(r'.*\.js$')
+CSS_RE = re.compile(r'.*\.(?:css|less)$')
 
 
 def stringify(value):
@@ -50,10 +52,28 @@ def get_current_version(url):
         return data.get('tag_name')
 
 
-def get_coverage(url):
+def get_has_statics(url):
+    url = url.replace('{/sha}', '/master?recursive=1')
+    resp = github_request(url)
+    has_js = False
+    has_css = False
+    if resp.status_code == 200:
+        data = json.loads(resp.content)
+        for item in data.get('tree', []):
+            path = item.get('path', '')
+            if JS_RE.match(path):
+                has_js = True
+            elif CSS_RE.match(path):
+                has_css = True
+    return (has_js, has_css)
+
+
+def get_coverage(url, has_js=False):
     coveralls_url = url.replace(
         'https://github.com', 'https://coveralls.io/github')
     coveralls_url += '.json'
+    coverage = None
+    has_js_coverage = False
 
     client = get_coveralls_client()
     resp = client.get(coveralls_url)
@@ -61,10 +81,23 @@ def get_coverage(url):
     if resp.status_code == 200:
         data = json.loads(resp.content)
         try:
-            coverage = data.get('covered_percent', 0)
-            return int(float(coverage) * 10) / 10.0
+            covered_percent = data.get('covered_percent', 0)
+            coverage = int(float(covered_percent) * 10) / 10.0
         except AttributeError:
             pass
+
+        if has_js:
+            commit_id = data.get('commit_sha')
+            build_url = ('https://coveralls.io/builds/{}.json?'
+                         'paths=*%2Fstatic%2F*').format(commit_id)
+            resp = client.get(build_url)
+
+            if resp.status_code == 200:
+                data = json.loads(resp.content)
+                if data.get('selected_source_files_count', 0) > 0:
+                    has_js_coverage = data.get('paths_covered_percent', 0) > 0
+
+    return (coverage, has_js_coverage)
 
 
 def get_setup_values(url):
@@ -80,7 +113,7 @@ def get_setup_values(url):
 
         results = DJANGO_RE.findall(resp.content.decode('utf-8'))
         if len(results):
-            values['Django'] = results[0]
+            values['Django'] = results[0] if (len(results[0])) else 'Unpinned'
     return values
 
 
@@ -91,6 +124,8 @@ def get_travis_values(repo):
         'https://github.com', 'https://raw.githubusercontent.com')
     travis_url = git_file_url + '/master/.travis.yml'
 
+    (has_js, has_css) = get_has_statics(repo['trees_url'])
+
     values = {
         'Travis CI': False,
         'Pycodestyle': False if (lang == 'Python') else 'N/A',
@@ -99,8 +134,9 @@ def get_travis_values(repo):
         'Django': None if (lang == 'Python') else 'N/A',
         'setup.py': False if (lang == 'Python') else 'N/A',
         'Coveralls': False,
-        'Coverage': None,
-        'JSHint': False,
+        'Coverage': 0,
+        'JS Coverage': False if has_js else 'N/A',
+        'JSHint': False if has_js else 'N/A',
         'Version': None,
     }
 
@@ -122,7 +158,8 @@ def get_travis_values(repo):
                     for path in excludes:
                         if path.find('migrations') == -1:
                             values['Pycodestyle'] = 'Excludes'
-
+            elif 0 == step.find('pep8'):
+                values['Pycodestyle'] = 'Pep8'
             elif 0 == step.find('jshint'):
                 values['JSHint'] = True
 
@@ -130,7 +167,10 @@ def get_travis_values(repo):
                      config.get('after_script', [])):
             if 0 == step.find('coveralls'):
                 values['Coveralls'] = True
-                values['Coverage'] = get_coverage(url)
+                (coverage, has_js_coverage) = get_coverage(url, has_js)
+                values['Coverage'] = coverage
+                if has_js:
+                    values['JS Coverage'] = has_js_coverage
 
         if config.get('deploy', {}).get('provider', '') == 'pypi':
             values['PyPI'] = True
