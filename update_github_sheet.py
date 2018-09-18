@@ -41,7 +41,7 @@ def get_repositories_for_org(org):
         repos.extend(json.loads(resp.content))
         next_link = resp.links.get('next')
 
-    return sorted(repos, key=lambda item: item['id'])
+    return sorted(repos, key=lambda item: item['updated_at'], reverse=True)
 
 
 def get_current_version(url):
