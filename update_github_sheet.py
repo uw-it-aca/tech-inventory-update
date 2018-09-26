@@ -169,7 +169,12 @@ def get_travis_values(repo):
         for step in (config.get('after_success', []) +
                      config.get('after_script', [])):
             if 0 == step.find('coveralls'):
-                values['Coveralls'] = True
+                for bstep in config.get('before_script', []):
+                    if 0 == bstep.find('pip install python-coveralls'):
+                        values['Coveralls'] = 'python-coveralls'
+                    elif 0 == bstep.find('pip install coveralls'):
+                        values['Coveralls'] = True
+
                 (coverage, has_js_coverage) = get_coverage(url, has_js)
                 values['Coverage'] = coverage
                 if has_js:
