@@ -201,12 +201,13 @@ def main(*args, **kwargs):
     repo_list = []
     for repo in all_repos:
         if not repo['archived']:  # Active repos only
+            open_issues = repo['open_issues_count']
             row_data = {
                 'URL': repo['html_url'],
                 'Name': repo['name'],
                 'Language': repo['language'],
                 'Last Updated': repo['updated_at'],
-                'Open Issues': repo['open_issues_count'],
+                'Open Issues': '' if open_issues == 0 else open_issues,
             }
             row_data.update(get_travis_values(repo))
             repo_list.append(row_data)
