@@ -23,10 +23,10 @@ def stringify(value):
     return value
 
 
-def get_column_names(sheet_id):
+def get_sheet_values(sheet_id):
     client = get_google_client()
     ws = client.open_by_key(sheet_id).worksheet(SHEET_NAME)
-    return ws.row_values(1)
+    return ws.get_all_values()
 
 
 def get_repositories_for_org(org):
@@ -194,27 +194,34 @@ def get_travis_values(repo):
 
 def main(*args, **kwargs):
     sheet_id = get_google_sheet_id()
-    col_names = get_column_names(sheet_id)
+    sheet_values = get_sheet_values(sheet_id)
+    col_names = sheet_values.pop(0)
     all_repos = get_repositories_for_org('uw-it-aca')
 
     repo_list = []
     for repo in all_repos:
-        row_data = {
-            'URL': repo['html_url'],
-            'Name': repo['name'],
-            'Language': repo['language'],
-            'Last Updated': repo['updated_at'],
-        }
-        row_data.update(get_travis_values(repo))
-        repo_list.append(row_data)
+        if not repo['archived']:  # Active repos only
+            row_data = {
+                'URL': repo['html_url'],
+                'Name': repo['name'],
+                'Language': repo['language'],
+                'Last Updated': repo['updated_at'],
+                'Open Issues': repo['open_issues_count'],
+            }
+            row_data.update(get_travis_values(repo))
+            repo_list.append(row_data)
 
     client = get_google_client()
     ws = client.open_by_key(sheet_id).worksheet(SHEET_NAME)
     cell_list = ws.range(
-        START_ROW, 1, len(all_repos)+(START_ROW-1), len(col_names))
+        START_ROW, 1, len(sheet_values)+(START_ROW-1), len(col_names))
 
     for cell in cell_list:
-        value = repo_list[cell.row-START_ROW].get(col_names[cell.col-1], '')
+        try:
+            row_data = repo_list[cell.row-START_ROW]
+            value = row_data.get(col_names[cell.col-1], '')
+        except IndexError:
+            value = ''
         cell.value = stringify(value)
 
     ws.update_cells(cell_list, value_input_option='RAW')
