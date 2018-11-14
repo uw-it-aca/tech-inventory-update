@@ -84,7 +84,7 @@ def get_coverage(url, has_js=False):
             covered_percent = data.get('covered_percent', 0)
             coverage = int(float(covered_percent) * 10) / 10.0
         except AttributeError:
-            pass
+            return (coverage, has_js_coverage)
 
         if has_js:
             commit_id = data.get('commit_sha')
