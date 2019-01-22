@@ -11,6 +11,7 @@ GOOGLE_SCOPES = 'https://www.googleapis.com/auth/spreadsheets'
 GOOGLE_KEY_PATH = '/tmp/key.json'
 GOOGLE_CLIENT = None
 GITHUB_CLIENT = None
+GITHUB_OK_STATUS = [200, 404, 409]
 COVERALLS_CLIENT = None
 KMS_CLIENT = boto3.client('kms', region_name='us-west-2')
 
@@ -70,7 +71,7 @@ def github_request(url, headers={}):
             'User-Agent': 'uw-it-aca/tech-inventory-updater'})
 
     resp = GITHUB_CLIENT.get(url, headers=headers)
-    if (resp.status_code == 200 or resp.status_code == 404):
+    if resp.status_code in GITHUB_OK_STATUS:
         return resp
 
     raise Exception(
