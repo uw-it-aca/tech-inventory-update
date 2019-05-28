@@ -210,10 +210,12 @@ def main(*args, **kwargs):
             row_data.update(get_travis_values(repo))
             repo_list.append(row_data)
 
+    max_row = max(len(sheet_values), len(repo_list))
+
     client = get_google_client()
     ws = client.open_by_key(sheet_id).worksheet(SHEET_NAME)
     cell_list = ws.range(
-        START_ROW, 1, len(sheet_values)+(START_ROW-1), len(col_names))
+        START_ROW, 1, max_row+(START_ROW-1), len(col_names))
 
     for cell in cell_list:
         try:
