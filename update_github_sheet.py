@@ -81,7 +81,7 @@ def get_coverage(url, has_js=False):
     if resp.status_code == 200:
         data = json.loads(resp.content)
         try:
-            covered_percent = data.get('covered_percent', 0)
+            covered_percent = data.get('covered_percent', 0) or 0
             coverage = int(float(covered_percent) * 10) / 10.0
         except AttributeError:
             return (coverage, has_js_coverage)
