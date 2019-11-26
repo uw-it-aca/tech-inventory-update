@@ -149,7 +149,7 @@ def get_travis_values(repo):
     resp = github_request(travis_url)
     if resp.status_code == 200:
         config = yaml.load(resp.content)
-        python_versions = config.get('python', [])
+        python_versions = [str(x) for x in config.get('python', [])]
         values['Python'] = ', '.join(sorted(python_versions, reverse=True))
 
         for step in config.get('script', []):
