@@ -52,8 +52,8 @@ def get_current_version(url):
         return data.get('tag_name')
 
 
-def get_has_statics(url):
-    url = url.replace('{/sha}', '/master?recursive=1')
+def get_has_statics(url, default_branch):
+    url = url.replace('{/sha}', '/{}?recursive=1'.format(default_branch))
     resp = github_request(url)
     has_js = False
     has_css = False
@@ -100,14 +100,15 @@ def get_coverage(url, has_js=False):
     return (coverage, has_js_coverage)
 
 
-def get_setup_values(url):
+def get_setup_values(url, default_branch):
     git_file_url = url.replace(
         'https://github.com', 'https://raw.githubusercontent.com')
-    setup_url = git_file_url + '/master/setup.py'
+    setup_url = '{}/{}/setup.py'.format(git_file_url, default_branch)
     values = {}
 
     resp = github_request(setup_url)
     if resp.status_code == 200:
+        values['Language'] = 'Python'
         values['setup.py'] = True
         values['Django'] = 'N/A'
 
@@ -115,7 +116,8 @@ def get_setup_values(url):
         if len(results):
             values['Django'] = results[0] if (len(results[0])) else 'Unpinned'
     elif resp.status_code == 404:
-        requirements_url = git_file_url + '/master/requirements.txt'
+        requirements_url = '{}/{}/requirements.txt'.format(
+            git_file_url, default_branch)
         resp = github_request(requirements_url)
         if resp.status_code == 200:
             values['setup.py'] = 'requirements.txt'
@@ -126,10 +128,11 @@ def get_setup_values(url):
 def get_travis_values(repo):
     url = repo['html_url']
     lang = repo['language']
+    default_branch = repo['default_branch']
     git_file_url = url.replace(
         'https://github.com', 'https://raw.githubusercontent.com')
-    travis_url = git_file_url + '/master/.travis.yml'
-    (has_js, has_css) = get_has_statics(repo['trees_url'])
+    travis_url = '{}/{}/.travis.yml'.format(git_file_url, default_branch)
+    (has_js, has_css) = get_has_statics(repo['trees_url'], default_branch)
     python_versions = []
 
     values = {
@@ -165,6 +168,9 @@ def get_travis_values(repo):
                 values['Pycodestyle'] = 'Pep8'
             elif 0 == step.find('jshint'):
                 values['JSHint'] = True
+            elif 0 == step.find('docker run'):
+                values['Pycodestyle'] = True
+                values['JSHint'] = True
 
         for step in (config.get('after_success', []) +
                      config.get('after_script', [])):
@@ -186,8 +192,8 @@ def get_travis_values(repo):
         values['Version'] = get_current_version(repo['releases_url'])
         values['Travis CI'] = True
 
-    if lang == 'Python' or len(python_versions):
-        values.update(get_setup_values(url))
+    if lang == 'Python' or len(python_versions) or values['Pycodestyle']:
+        values.update(get_setup_values(url, default_branch))
 
     return values
 
