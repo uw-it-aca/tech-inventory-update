@@ -53,7 +53,7 @@ def get_current_version(url):
 
 
 def get_has_statics(url, default_branch):
-    url = url.replace('{/sha}', '/' + default_branch + '?recursive=1')
+    url = url.replace('{/sha}', '/{}?recursive=1'.format(default_branch))
     resp = github_request(url)
     has_js = False
     has_css = False
@@ -103,7 +103,7 @@ def get_coverage(url, has_js=False):
 def get_setup_values(url, default_branch):
     git_file_url = url.replace(
         'https://github.com', 'https://raw.githubusercontent.com')
-    setup_url = git_file_url + '/' + default_branch + '/setup.py'
+    setup_url = '{}/{}/setup.py'.format(git_file_url, default_branch)
     values = {}
 
     resp = github_request(setup_url)
@@ -116,7 +116,8 @@ def get_setup_values(url, default_branch):
         if len(results):
             values['Django'] = results[0] if (len(results[0])) else 'Unpinned'
     elif resp.status_code == 404:
-        requirements_url = git_file_url + '/' + default_branch + '/requirements.txt'
+        requirements_url = '{}/{}/requirements.txt'.format(
+            git_file_url, default_branch)
         resp = github_request(requirements_url)
         if resp.status_code == 200:
             values['setup.py'] = 'requirements.txt'
@@ -130,7 +131,7 @@ def get_travis_values(repo):
     default_branch = repo['default_branch']
     git_file_url = url.replace(
         'https://github.com', 'https://raw.githubusercontent.com')
-    travis_url = git_file_url + '/' + default_branch + '/.travis.yml'
+    travis_url = '{}/{}/.travis.yml'.format(git_file_url, default_branch)
     (has_js, has_css) = get_has_statics(repo['trees_url'], default_branch)
     python_versions = []
 
