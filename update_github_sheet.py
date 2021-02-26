@@ -125,18 +125,84 @@ def get_setup_values(url, default_branch):
     return values
 
 
-def get_travis_values(repo):
+def get_github_action_values(repo, data):
+    values = {}
+    config = yaml.load(data)
+    for step in config.get('jobs', {}).get('test', {}).get('steps', []):
+        if 'run' in step:
+            if step.get('run').startswith('pycodestyle'):
+                values['Pycodestyle'] = True
+            elif step.get('run').startswith('coveralls'):
+                values['Coveralls'] = True
+        if 'with' in step and 'python-version' in step.get('with'):
+            values['Python'] = str(step.get('with').get('python-version'))
+
+    for step in config.get('jobs', {}).get('build', {}).get('steps', []):
+        if 'run' in step and 'docker/test.sh' in step.get('run'):
+            values['Pycodestyle'] = True
+            values['JSHint'] = True
+            values['Coveralls'] = True
+        if 'with' in step and 'python-version' in step.get('with'):
+            values['Python'] = str(step.get('with').get('python-version'))
+
+    for step in config.get('jobs', {}).get('publish', {}).get('steps', []):
+       if ('uses' in step and
+               'uw-it-aca/actions/publish-pypi' in step.get('uses')):
+           values['PyPI'] = True
+
+    return values
+
+
+def get_travis_values(repo, data):
+    values = {}
+    config = yaml.load(data)
+    python_versions = [str(x) for x in config.get('python', [])]
+    values['Python'] = ', '.join(sorted(python_versions, reverse=True))
+
+    for step in config.get('script', []):
+        if 0 == step.find('pycodestyle'):
+            values['Pycodestyle'] = True
+            matches = PYCODESTYLE_RE.match(step)
+            if matches:
+                excludes = matches.group(1).split(',')
+                for path in excludes:
+                    if path.find('migrations') == -1:
+                        values['Pycodestyle'] = 'Excludes'
+        elif 0 == step.find('pep8'):
+            values['Pycodestyle'] = 'Pep8'
+        elif 0 == step.find('jshint'):
+            values['JSHint'] = True
+        elif 0 == step.find('docker run'):
+            values['Pycodestyle'] = True
+
+    for step in (config.get('after_success', []) +
+                 config.get('after_script', [])):
+        if 0 == step.find('coveralls'):
+            for bstep in config.get('before_script', []):
+                if 0 == bstep.find('pip install python-coveralls'):
+                    values['Coveralls'] = 'python-coveralls'
+                elif 0 == bstep.find('pip install coveralls'):
+                    values['Coveralls'] = True
+
+    try:
+        if config.get('deploy', {}).get('provider', '') == 'pypi':
+            values['PyPI'] = True
+    except AttributeError:
+        pass
+
+    return values
+
+
+def get_cicd_values(repo):
     url = repo['html_url']
     lang = repo['language']
     default_branch = repo['default_branch']
     git_file_url = url.replace(
         'https://github.com', 'https://raw.githubusercontent.com')
-    travis_url = '{}/{}/.travis.yml'.format(git_file_url, default_branch)
     (has_js, has_css) = get_has_statics(repo['trees_url'], default_branch)
-    python_versions = []
 
     values = {
-        'Travis CI': False,
+        'CI/CD': 'N/A',
         'Pycodestyle': False if (lang == 'Python') else 'N/A',
         'PyPI': False if (lang == 'Python') else 'N/A',
         'Python': None if (lang == 'Python') else 'N/A',
@@ -149,51 +215,31 @@ def get_travis_values(repo):
         'Version': None,
     }
 
-    resp = github_request(travis_url)
+    ga_url = '{}/{}/.github/workflows/cicd.yml'.format(
+        git_file_url, default_branch)
+
+    resp = github_request(ga_url)
     if resp.status_code == 200:
-        config = yaml.load(resp.content)
-        python_versions = [str(x) for x in config.get('python', [])]
-        values['Python'] = ', '.join(sorted(python_versions, reverse=True))
+        values['CI/CD'] = 'github-actions'
+        values.update(get_github_action_values(repo, resp.content))
+    else:
+        travis_url = '{}/{}/.travis.yml'.format(git_file_url, default_branch)
+        resp = github_request(travis_url)
+        if resp.status_code == 200:
+            values['CI/CD'] = 'travis-ci'
+            values.update(get_travis_values(repo, resp.content))
 
-        for step in config.get('script', []):
-            if 0 == step.find('pycodestyle'):
-                values['Pycodestyle'] = True
-                matches = PYCODESTYLE_RE.match(step)
-                if matches:
-                    excludes = matches.group(1).split(',')
-                    for path in excludes:
-                        if path.find('migrations') == -1:
-                            values['Pycodestyle'] = 'Excludes'
-            elif 0 == step.find('pep8'):
-                values['Pycodestyle'] = 'Pep8'
-            elif 0 == step.find('jshint'):
-                values['JSHint'] = True
-            elif 0 == step.find('docker run'):
-                values['Pycodestyle'] = True
-                values['JSHint'] = True
+    values['Version'] = get_current_version(repo['releases_url'])
 
-        for step in (config.get('after_success', []) +
-                     config.get('after_script', [])):
-            if 0 == step.find('coveralls'):
-                for bstep in config.get('before_script', []):
-                    if 0 == bstep.find('pip install python-coveralls'):
-                        values['Coveralls'] = 'python-coveralls'
-                    elif 0 == bstep.find('pip install coveralls'):
-                        values['Coveralls'] = True
-
-                (coverage, has_js_coverage) = get_coverage(url, has_js)
-                values['Coverage'] = coverage
-                if has_js:
-                    values['JS Coverage'] = has_js_coverage
-
-        if config.get('deploy', {}).get('provider', '') == 'pypi':
-            values['PyPI'] = True
-
-        values['Version'] = get_current_version(repo['releases_url'])
-        values['Travis CI'] = True
-
-    if lang == 'Python' or len(python_versions) or values['Pycodestyle']:
+    if (lang == 'Python' or (values['Python'] is None or
+            values['Python'] != 'N/A') or values['Pycodestyle']):
         values.update(get_setup_values(url, default_branch))
+
+    if values['Coveralls']:
+        (coverage, has_js_coverage) = get_coverage(url, has_js)
+        values['Coverage'] = coverage
+        if has_js:
+            values['JS Coverage'] = has_js_coverage
 
     return values
 
@@ -213,7 +259,7 @@ def main(*args, **kwargs):
                 'Language': repo['language'],
                 'Last Updated': repo['updated_at'],
             }
-            row_data.update(get_travis_values(repo))
+            row_data.update(get_cicd_values(repo))
             repo_list.append(row_data)
 
     max_row = max(len(sheet_values), len(repo_list))
