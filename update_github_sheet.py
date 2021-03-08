@@ -2,15 +2,17 @@ from utils import (
     get_google_sheet_id, get_google_client, github_request,
     get_coveralls_client)
 import yaml
+import toml
 import json
 import re
 
 SHEET_NAME = 'GitHub'
 START_ROW = 2
-DJANGO_RE = re.compile(r'[\'"]django([=>].*)?[\'"]', re.I)
+DJANGO_RE = re.compile(r'[\'"]django([~=>].*)?[\'"]', re.I)
 PYCODESTYLE_RE = re.compile(r'.*--exclude=(.*)')
 JS_RE = re.compile(r'.*\.js$')
 CSS_RE = re.compile(r'.*\.(?:css|less)$')
+DJANGO_CONTAINER_RE = re.compile(r'FROM .*:(.*) as .*')
 
 
 def stringify(value):
@@ -100,7 +102,22 @@ def get_coverage(url, has_js=False):
     return (coverage, has_js_coverage)
 
 
-def get_setup_values(url, default_branch):
+def get_docker_values(url, default_branch):
+    git_file_url = url.replace(
+        'https://github.com', 'https://raw.githubusercontent.com')
+    dockerfile_url = '{}/{}/Dockerfile'.format(git_file_url, default_branch)
+    values = {}
+
+    resp = github_request(dockerfile_url)
+    if resp.status_code == 200:
+        matches = DJANGO_CONTAINER_RE.match(resp.content.decode('utf-8'))
+        if matches:
+            values['django-container'] = matches.group(1)
+
+    return values
+
+
+def get_install_values(url, default_branch):
     git_file_url = url.replace(
         'https://github.com', 'https://raw.githubusercontent.com')
     setup_url = '{}/{}/setup.py'.format(git_file_url, default_branch)
@@ -109,18 +126,30 @@ def get_setup_values(url, default_branch):
     resp = github_request(setup_url)
     if resp.status_code == 200:
         values['Language'] = 'Python'
-        values['setup.py'] = True
+        values['Install'] = 'setup.py'
         values['Django'] = 'N/A'
 
         results = DJANGO_RE.findall(resp.content.decode('utf-8'))
         if len(results):
             values['Django'] = results[0] if (len(results[0])) else 'Unpinned'
     elif resp.status_code == 404:
+        pyproject_url = '{}/{}/pyproject.toml'.format(
+            git_file_url, default_branch)
+        resp = github_request(pyproject_url)
+        if resp.status_code == 200:
+            values['Language'] = 'Python'
+            values['Install'] = 'pyproject.toml'
+            values['Django'] = 'N/A'
+
+            config = toml.loads(resp.content)
+            values['Django'] = config.get(
+                'Django', config.get('django', 'N/A'))
+
         requirements_url = '{}/{}/requirements.txt'.format(
             git_file_url, default_branch)
         resp = github_request(requirements_url)
         if resp.status_code == 200:
-            values['setup.py'] = 'requirements.txt'
+            values['Install'] = 'requirements.txt'
 
     return values
 
@@ -207,7 +236,8 @@ def get_cicd_values(repo):
         'PyPI': False if (lang == 'Python') else 'N/A',
         'Python': None if (lang == 'Python') else 'N/A',
         'Django': None if (lang == 'Python') else 'N/A',
-        'setup.py': False if (lang == 'Python') else 'N/A',
+        'django-container': 'N/A',
+        'Install': None if (lang == 'Python') else 'N/A',
         'Coveralls': False,
         'Coverage': 0,
         'JS Coverage': False if has_js else 'N/A',
@@ -233,7 +263,10 @@ def get_cicd_values(repo):
 
     if (lang == 'Python' or (values['Python'] is None or
             values['Python'] != 'N/A') or values['Pycodestyle']):
-        values.update(get_setup_values(url, default_branch))
+        values.update(get_install_values(url, default_branch))
+
+        if (values['Django'] is not None and values['Django'] != 'N/A'):
+            values.update(get_docker_values(url, default_branch))
 
     if values['Coveralls']:
         (coverage, has_js_coverage) = get_coverage(url, has_js)

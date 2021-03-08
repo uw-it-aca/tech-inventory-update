@@ -16,6 +16,7 @@ setup(
         'requests',
         'gspread',
         'PyYAML',
+        'toml',
     ],
     license='Apache License, Version 2.0',
     description=('AXDD Technology spreadsheet updater'),
