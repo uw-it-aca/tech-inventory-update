@@ -141,7 +141,8 @@ def get_install_values(url, default_branch):
             values['Install'] = 'pyproject.toml'
             values['Django'] = 'N/A'
 
-            config = toml.loads(resp.content)
+            config = toml.loads(resp.content.decode('utf-8'))
+            values['Python'] = config.get('Python', config.get('python'))
             values['Django'] = config.get(
                 'Django', config.get('django', 'N/A'))
 
@@ -156,7 +157,7 @@ def get_install_values(url, default_branch):
 
 def get_github_action_values(repo, data):
     values = {}
-    config = yaml.load(data)
+    config = yaml.full_load(data)
     for step in config.get('jobs', {}).get('test', {}).get('steps', []):
         if 'run' in step:
             if step.get('run').startswith('pycodestyle'):
@@ -184,7 +185,7 @@ def get_github_action_values(repo, data):
 
 def get_travis_values(repo, data):
     values = {}
-    config = yaml.load(data)
+    config = yaml.full_load(data)
     python_versions = [str(x) for x in config.get('python', [])]
     values['Python'] = ', '.join(sorted(python_versions, reverse=True))
 
