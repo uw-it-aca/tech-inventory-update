@@ -286,12 +286,14 @@ def main(*args, **kwargs):
 
     repo_list = []
     for repo in all_repos:
-        if not repo['archived']:  # Active repos only
+        if not repo.get('archived'):  # Active repos only
             row_data = {
-                'URL': repo['html_url'],
-                'Name': repo['name'],
-                'Language': repo['language'],
-                'Last Updated': repo['updated_at'],
+                'URL': repo.get('html_url'),
+                'Name': repo.get('name'),
+                'Language': repo.get('language'),
+                'Last Updated': repo.get('updated_at'),
+                'License': repo.get('license').get('name') if (
+                    repo.get('license') is not None) else 'N/A',
             }
             row_data.update(get_cicd_values(repo))
             repo_list.append(row_data)
