@@ -1,0 +1,2 @@
+include github_inventory/VERSION
+recursive-include github_inventory *
