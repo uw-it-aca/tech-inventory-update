@@ -1,0 +1,8 @@
+[run]
+source = tech-inventory-update
+parallel = True
+
+[paths]
+source =
+  github_inventory/
+  /app/github_inventory/
