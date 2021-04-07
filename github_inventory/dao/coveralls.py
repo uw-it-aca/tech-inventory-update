@@ -34,7 +34,7 @@ class Coveralls_DAO():
                 commit_id = data.get('commit_sha')
                 build_url = ('https://coveralls.io/builds/{}.json?'
                              'paths=*%2Fstatic%2F*').format(commit_id)
-                resp = client.get(build_url)
+                resp = self.client.get(build_url)
 
                 if resp.status_code == 200:
                     data = json.loads(resp.content)
