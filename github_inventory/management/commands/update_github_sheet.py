@@ -12,13 +12,14 @@ class Command(BaseCommand):
     help = 'Updates spreadsheet with latest repo attributes'
 
     def handle(self, *args, **options):
-        github_org = settings.get('GITHUB_ORG')
+        github_org = getattr(settings, 'GITHUB_ORG', '')
 
         repo_list = []
         for repo in GitHub_DAO().get_repositories_for_org(github_org):
             if not repo.get('archived'):  # Active repos only
                 repo_list.append(get_repo_values(repo))
 
-        GoogleSheet_DAO().update_sheet_values(settings.get('GOOGLE_SHEET_ID'),
-                                              settings.get('WORKSHEET_NAME'),
-                                              repo_list)
+        GoogleSheet_DAO().update_sheet_values(
+            getattr(settings, 'GOOGLE_SHEET_ID', ''),
+            getattr(settings, 'WORKSHEET_NAME', ''),
+            repo_list)

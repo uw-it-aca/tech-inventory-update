@@ -20,7 +20,7 @@ class GitHub_DAO():
     @property
     def client(self):
         if self._client is None:
-            access_token = settings.get('GITHUB_TOKEN')
+            access_token = getattr(settings, 'GITHUB_TOKEN', '')
 
             if not access_token:
                 raise Exception(
@@ -31,12 +31,12 @@ class GitHub_DAO():
                 'Authorization': 'token {}'.format(access_token),
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': '{}/github-inventory-updater'.format(
-                    settings.get('GITHUB_ORG'))})
+                    getattr(settings, 'GITHUB_ORG', ''))})
         return self._client
 
     def get(self, url, headers={}):
         resp = self.client.get(url, headers=headers)
-        if resp.status_code in settings.get(GITHUB_OK_STATUS, []):
+        if resp.status_code in getattr(settings, 'GITHUB_OK_STATUS', []):
             return resp
 
         raise Exception(
