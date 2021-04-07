@@ -12,6 +12,7 @@ setup(
     author_email="aca-it@uw.edu",
     include_package_data=True,
     install_requires=[
+        'Django~=2.2',
         'google-auth',
         'requests',
         'gspread',

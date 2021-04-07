@@ -1,0 +1,16 @@
+version: '3.4'
+
+services:
+  app:
+    environment:
+      ENV: localdev
+      PORT: 8000
+    restart: always
+    container_name: app-github-inventory
+    build:
+      context: .
+      target: app-container
+    volumes:
+      - ./github_inventory:/app/github_inventory
+    ports:
+      - "8000:8000"

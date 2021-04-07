@@ -1,0 +1,64 @@
+ingress:
+  enabled: false
+lifecycle:
+  enabled: true
+  preStop:
+    enabled: true
+affinity:
+  podsSpanNodes: true
+readiness:
+  enabled: true
+securityPolicy:
+  enabled: true
+database:
+  engine: null
+memcached:
+  enabled: false
+repo: github-inventory
+instance: test
+image:
+  repository: gcr.io/uwit-mci-axdd/github-inventory
+  tag: IMAGE_TAG
+gcsCredentials:
+  mounted: true
+  secretName: github-inventory.uw.edu-gcs-credentials
+cronjob:
+  enabled: false
+  jobs:
+    - name: update-inventory
+      schedule: "5 15-23 * * 1-5"
+      command: ["/scripts/management_command.sh"]
+      args: ["update_github_sheet"]
+environmentVariables:
+  - name: ENV
+    value: test
+externalSecrets:
+  enabled: true
+  secrets:
+    - name: github-inventory.uw.edu-secrets
+      externalKey: axdd/kv/data/github-inventory/secrets
+      data:
+        - name: django-secret
+          property: django-secret
+        - name: github-token
+          property: github-token
+        - name: google-sheet-id
+          property: google-sheet-id
+    - name: github-inventory.uw.edu-gcs-credentials
+      externalKey: axdd/kv/data/github-inventory/gcs-credentials
+      data:
+        - name: credentials.json
+          property: credentials.json
+environmentVariablesSecrets:
+  djangoSecret:
+    name: DJANGO_SECRET
+    secretName: github-inventory.uw.edu-secrets
+    secretKey: django-secret
+  githubToken:
+    name: GITHUB_TOKEN
+    secretName: github-inventory.uw.edu-secrets
+    secretKey: github-token
+  googleSheetID:
+    name: GOOGLE_SHEET_ID
+    secretName: github-inventory.uw.edu-secrets
+    secretKey: google-sheet-id
