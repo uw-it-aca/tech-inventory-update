@@ -7,14 +7,10 @@ import gspread
 
 
 def GoogleSheet_DAO():
-    _client = None
-
     @property
     def client(self):
-        if self._client is None:
-            credentials_path = getattr(settings, 'GS_CREDENTIALS', '')
-            self._client = gspread.service_account(filename=credentials_path)
-        return self._client
+        credentials_path = getattr(settings, 'GS_CREDENTIALS', '')
+        return gspread.service_account(filename=credentials_path)
 
     # def get_sheet_values(self, sheet_id, ws_name):
     #    ws = self.client.open_by_key(sheet_id).worksheet(ws_name)

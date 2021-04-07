@@ -4,6 +4,9 @@
 from github_inventory.dao.github import GitHub_DAO
 from github_inventory.dao.coveralls import Coveralls_DAO
 import yaml
+import re
+
+PYCODESTYLE_RE = re.compile(r'.*--exclude=(.*)')
 
 
 def stringify(value):
