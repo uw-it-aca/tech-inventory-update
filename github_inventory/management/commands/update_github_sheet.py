@@ -19,7 +19,7 @@ class Command(BaseCommand):
             if not repo.get('archived'):  # Active repos only
                 repo_list.append(get_repo_values(repo))
 
-        GoogleSheet_DAO().update_sheet_values(
+        GoogleSheet_DAO().update_sheet(
             getattr(settings, 'GOOGLE_SHEET_ID', ''),
             getattr(settings, 'WORKSHEET_NAME', ''),
             repo_list)
