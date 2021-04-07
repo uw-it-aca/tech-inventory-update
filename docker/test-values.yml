@@ -21,7 +21,7 @@ image:
   tag: IMAGE_TAG
 gcsCredentials:
   mounted: true
-  secretName: github-inventory.uw.edu-gcs-credentials
+  secretName: github-inventory.axdd.s.uw.edu-gcs-credentials
 cronjob:
   enabled: false
   jobs:
@@ -32,10 +32,12 @@ cronjob:
 environmentVariables:
   - name: ENV
     value: test
+  - name: CLUSTER_CNAME
+    value: github-inventory.axdd.s.uw.edu
 externalSecrets:
   enabled: true
   secrets:
-    - name: github-inventory.uw.edu-secrets
+    - name: github-inventory.axdd.s.uw.edu-secrets
       externalKey: axdd/kv/data/github-inventory/secrets
       data:
         - name: django-secret
@@ -44,7 +46,7 @@ externalSecrets:
           property: github-token
         - name: google-sheet-id
           property: google-sheet-id
-    - name: github-inventory.uw.edu-gcs-credentials
+    - name: github-inventory.axdd.s.uw.edu-gcs-credentials
       externalKey: axdd/kv/data/github-inventory/gcs-credentials
       data:
         - name: credentials.json
@@ -52,13 +54,13 @@ externalSecrets:
 environmentVariablesSecrets:
   djangoSecret:
     name: DJANGO_SECRET
-    secretName: github-inventory.uw.edu-secrets
+    secretName: github-inventory.axdd.s.uw.edu-secrets
     secretKey: django-secret
   githubToken:
     name: GITHUB_TOKEN
-    secretName: github-inventory.uw.edu-secrets
+    secretName: github-inventory.axdd.s.uw.edu-secrets
     secretKey: github-token
   googleSheetID:
     name: GOOGLE_SHEET_ID
-    secretName: github-inventory.uw.edu-secrets
+    secretName: github-inventory.axdd.s.uw.edu-secrets
     secretKey: google-sheet-id
