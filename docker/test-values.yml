@@ -23,7 +23,7 @@ gcsCredentials:
   mounted: true
   secretName: github-inventory.axdd.s.uw.edu-gcs-credentials
 cronjob:
-  enabled: false
+  enabled: true
   jobs:
     - name: update-inventory
       schedule: "5 15-23 * * 1-5"
