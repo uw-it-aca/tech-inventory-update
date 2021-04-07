@@ -12,7 +12,7 @@ def GoogleSheet_DAO():
     @property
     def client(self):
         if self._client is None:
-            credentials_path = settings.get('GS_CREDENTIALS')
+            credentials_path = getattr(settings, 'GS_CREDENTIALS', '')
             self._client = gspread.service_account(filename=credentials_path)
         return self._client
 
