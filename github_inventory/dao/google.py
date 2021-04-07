@@ -2,19 +2,21 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from django.conf import settings
+from threading import local
 from github_inventory.utils import stringify
 import gspread
 
 
-def GoogleSheet_DAO():
-    _client = None
+class GoogleSheet_DAO():
+    def __init__(self):
+        self._local = local()
 
     @property
     def client(self):
-        if self._client is None:
-            credentials_path = settings.get('GS_CREDENTIALS')
-            self._client = gspread.service_account(filename=credentials_path)
-        return self._client
+        if not hasattr(self._local, 'client'):
+            credentials = getattr(settings, 'GS_CREDENTIALS', '')
+            self._local.client = gspread.service_account(filename=credentials)
+        return self._local.client
 
     # def get_sheet_values(self, sheet_id, ws_name):
     #    ws = self.client.open_by_key(sheet_id).worksheet(ws_name)

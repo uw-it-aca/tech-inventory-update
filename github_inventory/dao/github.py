@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from django.conf import settings
+from threading import local
 import requests
 import json
 import toml
@@ -11,32 +12,33 @@ JS_RE = re.compile(r'.*\.js$')
 CSS_RE = re.compile(r'.*\.(?:css|less)$')
 DJANGO_RE = re.compile(r'[\'"]django([~=>].*)?[\'"]', re.I)
 DJANGO_CONTAINER_RE = re.compile(r'FROM .*:(.*) as .*')
-PYCODESTYLE_RE = re.compile(r'.*--exclude=(.*)')
 
 
 class GitHub_DAO():
-    _client = None
+    def __init__(self):
+        self._local = local()
 
     @property
     def client(self):
-        if self._client is None:
-            access_token = settings.get('GITHUB_TOKEN')
+        if not hasattr(self._local, 'client'):
+            access_token = getattr(settings, 'GITHUB_TOKEN', '')
 
             if not access_token:
                 raise Exception(
                     'Need a GITHUB_TOKEN with access to github org')
 
-            self._client = requests.Session()
-            self._client.headers.update({
+            client = requests.Session()
+            client.headers.update({
                 'Authorization': 'token {}'.format(access_token),
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': '{}/github-inventory-updater'.format(
-                    settings.get('GITHUB_ORG'))})
-        return self._client
+                    getattr(settings, 'GITHUB_ORG', ''))})
+            self._local.client = client
+        return self._local.client
 
     def get(self, url, headers={}):
         resp = self.client.get(url, headers=headers)
-        if resp.status_code in settings.get(GITHUB_OK_STATUS, []):
+        if resp.status_code in getattr(settings, 'GITHUB_OK_STATUS', []):
             return resp
 
         raise Exception(

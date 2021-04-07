@@ -1,18 +1,20 @@
 # Copyright 2021 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
+from threading import local
 import requests
 import json
 
 
 class Coveralls_DAO():
-    _client = None
+    def __init__(self):
+        self._local = local()
 
     @property
     def client(self):
-        if self._client is None:
-            self._client = requests.Session()
-        return self._client
+        if not hasattr(self._local, 'client'):
+            self._local.client = requests.Session()
+        return self._local.client
 
     def get_coverage(self, repo_url, has_js=False):
         coveralls_url = repo_url.replace(
@@ -34,7 +36,7 @@ class Coveralls_DAO():
                 commit_id = data.get('commit_sha')
                 build_url = ('https://coveralls.io/builds/{}.json?'
                              'paths=*%2Fstatic%2F*').format(commit_id)
-                resp = client.get(build_url)
+                resp = self.client.get(build_url)
 
                 if resp.status_code == 200:
                     data = json.loads(resp.content)
