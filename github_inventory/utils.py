@@ -116,6 +116,7 @@ def get_repo_values(repo):
         'License': repo.get('license').get('name') if (
             repo.get('license') is not None) else 'N/A',
         'CI/CD': 'N/A',
+        'Default Branch': default_branch,
         'Pycodestyle': False if (lang == 'Python') else 'N/A',
         'PyPI': False if (lang == 'Python') else 'N/A',
         'Python': None if (lang == 'Python') else 'N/A',
