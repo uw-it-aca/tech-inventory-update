@@ -33,7 +33,7 @@ def parse_github_action_values(repo, data):
         if ('uses' in step and
                 'uw-it-aca/actions/python-linters' in step.get('uses')):
             values['Pycodestyle'] = True
-            if repo.get('license').get('name'):
+            if repo.get('license'):
                 values['License'] = (
                     repo.get('license').get('name') + ' with src headers')
 
@@ -46,7 +46,7 @@ def parse_github_action_values(repo, data):
             values['Python'] = str(step.get('with').get('python-version'))
         if ('uses' in step and
                 'uw-it-aca/actions/python-linters' in step.get('uses') and
-                repo.get('license').get('name')):
+                repo.get('license')):
             values['License'] = (
                 repo.get('license').get('name') + ' with src headers')
 
@@ -116,6 +116,7 @@ def get_repo_values(repo):
         'License': repo.get('license').get('name') if (
             repo.get('license') is not None) else 'N/A',
         'CI/CD': 'N/A',
+        'Default Branch': default_branch,
         'Pycodestyle': False if (lang == 'Python') else 'N/A',
         'PyPI': False if (lang == 'Python') else 'N/A',
         'Python': None if (lang == 'Python') else 'N/A',
