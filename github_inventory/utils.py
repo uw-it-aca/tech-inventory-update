@@ -29,7 +29,8 @@ def parse_github_action_values(repo, data):
             elif step.get('run').startswith('coveralls'):
                 values['Coveralls'] = True
         if 'with' in step and 'python-version' in step.get('with'):
-            values['Python'] = str(step.get('with').get('python-version'))
+            values['Language'] = 'Python{}'.format(
+                str(step.get('with').get('python-version')))
         if ('uses' in step and
                 'uw-it-aca/actions/python-linters' in step.get('uses')):
             values['Pycodestyle'] = True
@@ -43,7 +44,8 @@ def parse_github_action_values(repo, data):
             values['JSHint'] = True
             values['Coveralls'] = True
         if 'with' in step and 'python-version' in step.get('with'):
-            values['Python'] = str(step.get('with').get('python-version'))
+            values['Language'] = 'Python{}'.format(
+                str(step.get('with').get('python-version')))
         if ('uses' in step and
                 'uw-it-aca/actions/python-linters' in step.get('uses') and
                 repo.get('license')):
@@ -62,7 +64,8 @@ def parse_travis_values(repo, data):
     values = {}
     config = yaml.full_load(data)
     python_versions = [str(x) for x in config.get('python', [])]
-    values['Python'] = ', '.join(sorted(python_versions, reverse=True))
+    values['Language'] = 'Python{}'.format(','.join(
+        sorted(python_versions, reverse=True)))
 
     for step in config.get('script', []):
         if 0 == step.find('pycodestyle'):
@@ -119,10 +122,8 @@ def get_repo_values(repo):
         'Default Branch': default_branch,
         'Pycodestyle': False if (lang == 'Python') else 'N/A',
         'PyPI': False if (lang == 'Python') else 'N/A',
-        'Python': None if (lang == 'Python') else 'N/A',
         'Django': None if (lang == 'Python') else 'N/A',
         'django-container': 'N/A',
-        'Install': None if (lang == 'Python') else 'N/A',
         'Coveralls': False,
         'Coverage': 0,
         'JS Coverage': False if has_js else 'N/A',
@@ -146,9 +147,8 @@ def get_repo_values(repo):
 
     values['Version'] = ghclient.get_current_version(repo['releases_url'])
 
-    if (lang == 'Python' or (
-            values['Python'] is None or values['Python'] != 'N/A') or
-            values['Pycodestyle']):
+    if ((lang is not None and lang.startswith('Python')) or (
+            values['Pycodestyle'])):
         values.update(ghclient.get_install_values(url, default_branch))
 
         if (values['Django'] is not None and values['Django'] != 'N/A'):

@@ -90,8 +90,6 @@ class GitHub_DAO():
 
         resp = self.get(setup_url)
         if resp.status_code == 200:
-            values['Language'] = 'Python'
-            values['Install'] = 'setup.py'
             values['Django'] = 'N/A'
 
             results = DJANGO_RE.findall(resp.content.decode('utf-8'))
@@ -103,21 +101,14 @@ class GitHub_DAO():
                 git_file_url, default_branch)
             resp = self.get(pyproject_url)
             if resp.status_code == 200:
-                values['Language'] = 'Python'
-                values['Install'] = 'pyproject.toml'
                 values['Django'] = 'N/A'
 
                 config = toml.loads(resp.content.decode('utf-8'))
-                values['Python'] = config.get('Python', config.get('python'))
+                python_version = config.get('Python', config.get('python'))
+                if python_version:
+                    values['Language'] = 'Python{}'.format(python_version)
                 values['Django'] = config.get(
                     'Django', config.get('django', 'N/A'))
-
-            else:
-                requirements_url = '{}/{}/requirements.txt'.format(
-                    git_file_url, default_branch)
-                resp = self.get(requirements_url)
-                if resp.status_code == 200:
-                    values['Install'] = 'requirements.txt'
         return values
 
     def get_repositories_for_org(self, org):
