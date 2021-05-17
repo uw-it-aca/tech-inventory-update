@@ -122,7 +122,6 @@ def get_repo_values(repo):
         'Python': None if (lang == 'Python') else 'N/A',
         'Django': None if (lang == 'Python') else 'N/A',
         'django-container': 'N/A',
-        'Install': None if (lang == 'Python') else 'N/A',
         'Coveralls': False,
         'Coverage': 0,
         'JS Coverage': False if has_js else 'N/A',
