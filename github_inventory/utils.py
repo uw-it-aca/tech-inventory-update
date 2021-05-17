@@ -148,7 +148,7 @@ def get_repo_values(repo):
     values['Version'] = ghclient.get_current_version(repo['releases_url'])
 
     if ((lang is not None and lang.startswith('Python')) or (
-            values['Pycodestyle']):
+            values['Pycodestyle'])):
         values.update(ghclient.get_install_values(url, default_branch))
 
         if (values['Django'] is not None and values['Django'] != 'N/A'):
