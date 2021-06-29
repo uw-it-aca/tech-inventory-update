@@ -17,6 +17,7 @@ RUN pip install -r requirements.txt
 
 ADD --chown=acait:acait . /app/
 ADD --chown=acait:acait docker/settings.py /app/github_inventory_settings.py
-RUN chmod -R +x /app/update_github_sheet.py
+ADD --chown=acait:acait docker/run.sh /scripts/run.sh
+RUN chmod -R +x /scripts /app/update_github_sheet.py
 
-ENTRYPOINT ["/app/update_github_sheet.py"]
+CMD ["/scripts/run.sh", "/app/update_github_sheet.py"]
