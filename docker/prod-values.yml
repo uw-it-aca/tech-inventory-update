@@ -3,14 +3,6 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 1
 
-resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
-  requests:
-    cpu: 25m
-    memory: 500Mi
-
 service:
   enabled: false
 
@@ -38,7 +30,7 @@ cronjob:
   enabled: true
   jobs:
     - name: update-inventory
-      schedule: "5 15-23 * * 1-5"
+      schedule: "55 15-23 * * 1-5"
       command: ["/scripts/run.sh"]
       args: ["/app/update_github_sheet.py"]
 
