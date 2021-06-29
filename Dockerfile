@@ -1,13 +1,22 @@
-FROM gcr.io/uwit-mci-axdd/django-container:1.3.1 as app-container
+FROM python:3.6 as app-container
 
-ADD --chown=acait:acait github_inventory/VERSION /app/github_inventory/
+WORKDIR /app/
+ENV PYTHONUNBUFFERED 1
+ENV LOG_FILE stdout
+
+RUN groupadd -r acait -g 1000 && \
+    useradd -u 1000 -rm -g acait -d /home/acait -s /bin/bash -c "container user" acait && \
+    chown -R acait:acait /app && \
+    chown -R acait:acait /home/acait
+
+USER acait
+
 ADD --chown=acait:acait setup.py /app/
 ADD --chown=acait:acait requirements.txt /app/
-RUN . /app/bin/activate && pip install -r requirements.txt
+RUN pip install -r requirements.txt
 
 ADD --chown=acait:acait . /app/
-ADD --chown=acait:acait docker/ project/
+ADD --chown=acait:acait docker/settings.py /app/github_inventory_settings.py
+RUN chmod -R +x /app/update_github_sheet.py
 
-FROM gcr.io/uwit-mci-axdd/django-test-container:1.3.1 as app-test-container
-
-COPY --from=app-container /app/ /app/
+ENTRYPOINT ["/app/update_github_sheet.py"]

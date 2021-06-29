@@ -1,47 +1,71 @@
 ingress:
   enabled: false
+
 lifecycle:
-  enabled: true
-  preStop:
-    enabled: true
-affinity:
-  podsSpanNodes: true
+  enabled: false
+
 readiness:
-  enabled: true
-securityPolicy:
-  enabled: true
+  enabled: false
+
 database:
   engine: null
+
 memcached:
   enabled: false
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 25m
+    memory: 128Mi
+
+service:
+  enabled: false
+  ports:
+    - port: 9100
+      targetPort: 9100
+      name: metrics
+
+deploymentInitialization:
+  enabled: false
+
 repo: github-inventory
-instance: test
+instance: prod
+
 image:
   repository: gcr.io/uwit-mci-axdd/github-inventory
   tag: IMAGE_TAG
+
+certs:
+  mounted: false
+
 gcsCredentials:
   mounted: true
   secretName: github-inventory.axdd.s.uw.edu-gcs-credentials
+
 cronjob:
   enabled: true
   jobs:
     - name: update-inventory
       schedule: "5 15-23 * * 1-5"
-      command: ["/scripts/management_command.sh"]
-      args: ["update_github_sheet"]
+      command: ["/app/update_github_sheet.py"]
+      args: []
+
+daemon:
+  enabled: false
+
 environmentVariables:
-  - name: ENV
-    value: test
-  - name: CLUSTER_CNAME
-    value: github-inventory.axdd.s.uw.edu
+  - name: "ENV"
+    value: "prod"
+
 externalSecrets:
   enabled: true
   secrets:
     - name: github-inventory.axdd.s.uw.edu-secrets
       externalKey: axdd/kv/data/github-inventory/secrets
       data:
-        - name: django-secret
-          property: django-secret
         - name: github-token
           property: github-token
         - name: google-sheet-id
@@ -52,10 +76,6 @@ externalSecrets:
         - name: credentials.json
           property: credentials.json
 environmentVariablesSecrets:
-  djangoSecret:
-    name: DJANGO_SECRET
-    secretName: github-inventory.axdd.s.uw.edu-secrets
-    secretKey: django-secret
   githubToken:
     name: GITHUB_TOKEN
     secretName: github-inventory.axdd.s.uw.edu-secrets
