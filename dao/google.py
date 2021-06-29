@@ -1,9 +1,9 @@
 # Copyright 2021 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
-from django.conf import settings
+import github_inventory_settings as settings
 from threading import local
-from github_inventory.utils import stringify
+from utils import stringify
 import gspread
 
 

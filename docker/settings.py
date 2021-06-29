@@ -1,9 +1,4 @@
-from .base_settings import *
 import os
-
-INSTALLED_APPS += [
-    'github_inventory.apps.GithubInventoryConfig',
-]
 
 GITHUB_ORG = 'uw-it-aca'
 GITHUB_OK_STATUS = [200, 404, 409]

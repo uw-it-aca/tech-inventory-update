@@ -7,12 +7,9 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 setup(
     name='tech-inventory-update',
     version='0.1',
-    packages=['github_inventory'],
     author="UW-IT AXDD",
     author_email="aca-it@uw.edu",
-    include_package_data=True,
     install_requires=[
-        'Django~=2.2',
         'requests',
         'gspread',
         'PyYAML',
