@@ -1,8 +1,8 @@
 # Copyright 2021 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
-from github_inventory.dao.github import GitHub_DAO
-from github_inventory.dao.coveralls import Coveralls_DAO
+from dao.github import GitHub_DAO
+from dao.coveralls import Coveralls_DAO
 import yaml
 import re
 

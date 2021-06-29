@@ -5,12 +5,12 @@ services:
     environment:
       ENV: localdev
       PORT: 8000
+      GITHUB_TOKEN: $GITHUB_TOKEN
+      GOOGLE_SHEET_ID: $GOOGLE_SHEET_ID
     restart: always
     container_name: app-github-inventory
     build:
       context: .
       target: app-container
-    volumes:
-      - ./github_inventory:/app/github_inventory
     ports:
       - "8000:8000"
