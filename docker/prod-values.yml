@@ -1,12 +1,7 @@
-autoscaling:
-  enabled: true
-  minReplicas: 1
-  maxReplicas: 1
-
-service:
+deployment:
   enabled: false
 
-deploymentInitialization:
+service:
   enabled: false
 
 lifecycle:
