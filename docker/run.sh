@@ -9,7 +9,7 @@ EXIT_TIME=$(date +%s)
 RUN_TIME=$(( EXIT_TIME - START_TIME ))
 
 if [[ -v PUSHGATEWAY ]]; then
-    JOB="$1"
+    JOB=$(basename -s .py $1)
     if [[ -z "$RELEASE_ID" ]]; then
         RELEASE_ID=$(echo -n $HOSTNAME | sed -E 's/-cronjob-.+$//')
     fi
