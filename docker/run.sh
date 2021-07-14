@@ -18,14 +18,14 @@ if [[ -v PUSHGATEWAY ]]; then
     PUSHGATEWAY_PATH="metrics/job/${JOB}/instance/${RELEASE_ID}"
 
     cat <<EOF | curl --silent --show-error --data-binary @- "http://${PUSHGATEWAY}:9091/${PUSHGATEWAY_PATH}"
-# HELP job_exit Job exit code.
-# TYPE job_exit gauge
-job_exit{${LABELS}} $EXIT_STATUS
-# HELP job_finished Time job last finished.
-# TYPE job_finished gauge
-job_finished{${LABELS}} $EXIT_TIME
-# HELP job_duration Duration of latest job.
-# TYPE job_duration gauge
-job_duration{${LABELS}} $RUN_TIME
+# HELP management_command_exit Job exit code.
+# TYPE management_command_exit gauge
+management_command_exit{${LABELS}} $EXIT_STATUS
+# HELP management_command_finished Time job last finished.
+# TYPE management_command_finished gauge
+management_command_finished{${LABELS}} $EXIT_TIME
+# HELP management_command_duration Duration of latest job.
+# TYPE management_command_duration gauge
+management_command_duration{${LABELS}} $RUN_TIME
 EOF
 fi
