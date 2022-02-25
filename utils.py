@@ -39,7 +39,8 @@ def parse_github_action_values(repo, data):
                     repo.get('license').get('name') + ' with src headers')
 
     for step in config.get('jobs', {}).get('build', {}).get('steps', []):
-        if 'run' in step and 'docker/test.sh' in step.get('run'):
+        if ('run' in step and ('docker/test.sh' in step.get('run') or
+                'docker/test_python.sh' in step.get('run'))):
             values['Pycodestyle'] = True
             values['JSHint'] = True
             values['Coveralls'] = True
