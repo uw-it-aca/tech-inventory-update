@@ -1,3 +1,6 @@
+# Copyright 2022 UW-IT, University of Washington
+# SPDX-License-Identifier: Apache-2.0
+
 # Copyright 2021 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
@@ -40,7 +43,7 @@ def parse_github_action_values(repo, data):
 
     for step in config.get('jobs', {}).get('build', {}).get('steps', []):
         if ('run' in step and ('docker/test.sh' in step.get('run') or
-                'docker/test_python.sh' in step.get('run'))):
+                               'docker/test_python.sh' in step.get('run'))):
             values['Pycodestyle'] = True
             values['JSHint'] = True
             values['Coveralls'] = True
