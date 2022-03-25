@@ -126,4 +126,4 @@ class GitHub_DAO():
             repos.extend(json.loads(resp.content))
             next_link = resp.links.get('next')
 
-        return sorted(repos, key=lambda item: item['updated_at'], reverse=True)
+        return sorted(repos, key=lambda item: item['pushed_at'], reverse=True)
