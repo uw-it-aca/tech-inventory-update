@@ -119,7 +119,7 @@ def get_repo_values(repo):
         'URL': url,
         'Name': repo.get('name'),
         'Language': lang,
-        'Last Updated': repo.get('updated_at'),
+        'Last Updated': repo.get('pushed_at'),
         'License': repo.get('license').get('name') if (
             repo.get('license') is not None) else 'N/A',
         'CI/CD': 'N/A',
