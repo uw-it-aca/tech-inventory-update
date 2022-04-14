@@ -13,7 +13,7 @@ on:
 
 jobs:
   context:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     outputs:
       commit_hash: ${{ steps.context.outputs.commit_hash }}
@@ -28,7 +28,7 @@ jobs:
           release_name: ${{ env.RELEASE_NAME }}
 
   build:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     needs: context
 
@@ -39,7 +39,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.6
+          python-version: 3.8
 
       - name: Run Python Linters
         uses: uw-it-aca/actions/python-linters@main
@@ -77,7 +77,7 @@ jobs:
 
     needs: [context, build]
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     outputs:
       context: ${{ steps.context.outputs.context }}
@@ -107,7 +107,7 @@ jobs:
 
     needs: [context, build, deploy]
 
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-20.04
 
     steps:
       - name: House Keeping
