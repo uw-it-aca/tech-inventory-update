@@ -79,7 +79,7 @@ class GitHub_DAO():
         resp = self.get(dockerfile_url)
         if resp.status_code == 200:
             content = resp.content.decode('utf-8')
-            matches = (DJANGO_CONTAINER_VERSION_RE(content) or
+            matches = (DJANGO_CONTAINER_VERSION_RE.match(content) or
                        DJANGO_CONTAINER_RE.match(content))
             if matches:
                 values['django-container'] = matches.group(1)
