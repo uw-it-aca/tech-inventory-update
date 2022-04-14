@@ -1,9 +1,6 @@
 # Copyright 2022 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
-# Copyright 2021 UW-IT, University of Washington
-# SPDX-License-Identifier: Apache-2.0
-
 import github_inventory_settings as settings
 from threading import local
 import requests
@@ -15,6 +12,7 @@ JS_RE = re.compile(r'.*\.js$')
 CSS_RE = re.compile(r'.*\.(?:css|less)$')
 DJANGO_RE = re.compile(r'[\'"]django([~=>].*)?[\'"]', re.I)
 DJANGO_CONTAINER_RE = re.compile(r'FROM .*:(.*) as .*')
+DJANGO_CONTAINER_VERSION_RE = re.compile(r'ARG DJANGO_CONTAINER_VERSION=(.*)')
 
 
 class GitHub_DAO():
@@ -80,9 +78,12 @@ class GitHub_DAO():
 
         resp = self.get(dockerfile_url)
         if resp.status_code == 200:
-            matches = DJANGO_CONTAINER_RE.match(resp.content.decode('utf-8'))
+            content = resp.content.decode('utf-8')
+            matches = (DJANGO_CONTAINER_VERSION_RE(content) or
+                       DJANGO_CONTAINER_RE.match(content))
             if matches:
                 values['django-container'] = matches.group(1)
+
         return values
 
     def get_install_values(self, url, default_branch):
