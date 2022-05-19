@@ -37,14 +37,14 @@ externalSecrets:
   enabled: true
   secrets:
     - name: github-inventory.axdd.s.uw.edu-secrets
-      externalKey: axdd/kv/data/github-inventory/secrets
+      externalKey: github-inventory/secrets
       data:
         - name: github-token
           property: github-token
         - name: google-sheet-id
           property: google-sheet-id
     - name: github-inventory.axdd.s.uw.edu-gcs-credentials
-      externalKey: axdd/kv/data/github-inventory/gcs-credentials
+      externalKey: github-inventory/gcs-credentials
       data:
         - name: credentials.json
           property: credentials.json
