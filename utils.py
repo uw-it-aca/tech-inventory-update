@@ -112,7 +112,7 @@ def get_repo_values(repo):
     (has_js, has_css) = ghclient.get_has_statics(
         repo['trees_url'], default_branch)
 
-    values = {
+    repo_values = {
         'URL': url,
         'Name': repo.get('name'),
         'Language': lang,
@@ -127,9 +127,25 @@ def get_repo_values(repo):
         'django-container': 'N/A',
         'Coveralls': False,
         'Coverage': 0,
-        'JS Coverage': False if has_js else 'N/A',
-        'JSHint': False if has_js else 'N/A',
         'Version': None,
+    }
+
+    webapp_values = {
+        'URL': url,
+        'Name': repo.get('name'),
+        'Django': None if (lang == 'Python') else 'N/A',
+        'Vue': None,
+        'Vite': None,
+        'Webpack': None,
+        'django-compressor': None,
+        'axdd-components': None,
+        'Bootstrap': None,
+        'Bootstrap Icons': None,
+        'Prettier': None,
+        'ESLint': None,
+        'Stylint': None,
+        'JSHint': False if has_js else 'N/A',
+        'Coverage': False if has_js else 'N/A',
     }
 
     ga_url = '{}/{}/.github/workflows/cicd.yml'.format(
@@ -137,28 +153,42 @@ def get_repo_values(repo):
 
     resp = ghclient.get(ga_url)
     if resp.status_code == 200:
-        values['CI/CD'] = 'github-actions'
-        values.update(parse_github_action_values(repo, resp.content))
+        repo_values['CI/CD'] = 'github-actions'
+        repo_values.update(parse_github_action_values(repo, resp.content))
     else:
         travis_url = '{}/{}/.travis.yml'.format(git_file_url, default_branch)
         resp = ghclient.get(travis_url)
         if resp.status_code == 200:
-            values['CI/CD'] = 'travis-ci'
-            values.update(parse_travis_values(repo, resp.content))
+            repo_values['CI/CD'] = 'travis-ci'
+            repo_values.update(parse_travis_values(repo, resp.content))
 
-    values['Version'] = ghclient.get_current_version(repo['releases_url'])
+    repo_values['Version'] = ghclient.get_current_version(repo['releases_url'])
 
     if ((lang is not None and lang.startswith('Python')) or (
-            values['Pycodestyle'])):
-        values.update(ghclient.get_install_values(url, default_branch))
+            repo_values['Pycodestyle'])):
+        repo_values.update(ghclient.get_install_values(url, default_branch))
+        webapp_values['Django'] = repo_values['Django']
 
-        if (values['Django'] is not None and values['Django'] != 'N/A'):
-            values.update(ghclient.get_docker_values(url, default_branch))
+        if (repo_values['Django'] is not None and
+                repo_values['Django'] != 'N/A'):
+            repo_values.update(ghclient.get_docker_values(url, default_branch))
 
-    if values['Coveralls']:
-        (coverage, has_js_coverage) = Coveralls_DAO().get_coverage(url, has_js)
-        values['Coverage'] = coverage
+    if repo_values['Coveralls']:
+        (coverage, js_coverage) = Coveralls_DAO().get_coverage(url, has_js)
+        repo_values['Coverage'] = coverage
         if has_js:
-            values['JS Coverage'] = has_js_coverage
+            webapp_values['Coverage'] = js_coverage
 
-    return values
+    webapp_values['JSHint'] = repo_values.get('JSHint')
+    webapp_values['django-compressor'] = repo_values.get('django-compressor')
+    try:
+        del repo_values['JSHint']
+        del repo_values['django-compressor']
+    except KeyError:
+        pass
+
+    if has_js or has_css:
+        webapp_values.update(ghclient.get_webapp_values(url, default_branch))
+        return repo_values, webapp_values
+    else:
+        return repo_values, None
