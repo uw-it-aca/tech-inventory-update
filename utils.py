@@ -187,7 +187,7 @@ def get_repo_values(repo):
     except KeyError:
         pass
 
-    if has_js or has_css:
+    if has_js and has_css:
         webapp_values.update(ghclient.get_webapp_values(url, default_branch))
         return repo_values, webapp_values
     else:
