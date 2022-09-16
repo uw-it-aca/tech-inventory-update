@@ -25,7 +25,7 @@ cronjob:
   enabled: true
   jobs:
     - name: update-inventory
-      schedule: "55 15-23 * * 1-5"
+      schedule: "5,20,35,50 15-23 * * 1-5"
       command: ["/scripts/run.sh"]
       args: ["/app/update_github_sheet.py"]
 

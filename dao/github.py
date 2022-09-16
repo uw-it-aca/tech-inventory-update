@@ -132,7 +132,8 @@ class GitHub_DAO():
 
             results = COMPRESSOR_RE.findall(content)
             if len(results):
-                values['django-compressor'] = True
+                values['django-compressor'] =results[0] if (
+                    len(results[0])) else 'Unpinned'
 
         elif resp.status_code == 404:
             pyproject_url = '{}/{}/pyproject.toml'.format(
