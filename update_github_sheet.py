@@ -5,7 +5,7 @@
 import github_inventory_settings as settings
 from dao.github import GitHub_DAO
 from dao.google import GoogleSheet_DAO
-from utils import get_repo_values, get_webapp_values
+from utils import get_repo_values
 import logging
 import sys
 
