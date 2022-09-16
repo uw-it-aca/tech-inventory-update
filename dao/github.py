@@ -85,9 +85,11 @@ class GitHub_DAO():
             if dependencies:
                 values['Vue'] = dependencies.get('vue')
                 values['Webpack'] = dependencies.get('webpack')
-                values['axdd-components'] = dependencies.get('axdd-components')
                 values['Bootstrap'] = dependencies.get('bootstrap')
                 values['Bootstrap Icons'] = dependencies.get('bootstrap-icons')
+                if dependencies.get('axdd-components'):
+                    url, version = dependencies['axdd-components').split('#')
+                    values['axdd-components'] = version
 
             dev_dependencies = data.get('devDependencies')
             if dev_dependencies:
