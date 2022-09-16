@@ -81,22 +81,22 @@ class GitHub_DAO():
         if resp.status_code == 200:
             data = json.loads(resp.content)
 
-            dependencies = data.get('dependencies')
-            if dependencies:
+            for dependencies in [data.get('devDependencies', {}),
+                                 data.get('dependencies', {})]:
                 values['Vue'] = dependencies.get('vue')
                 values['Webpack'] = dependencies.get('webpack')
                 values['Bootstrap'] = dependencies.get('bootstrap')
                 values['Bootstrap Icons'] = dependencies.get('bootstrap-icons')
-                if dependencies.get('axdd-components'):
-                    url, version = dependencies['axdd-components').split('#')
+                try:
+                    url, version = dependencies.get(
+                        'axdd-components', '').split('#')
                     values['axdd-components'] = version
-
-            dev_dependencies = data.get('devDependencies')
-            if dev_dependencies:
-                values['Vite'] = dev_dependencies.get('vite')
-                values['Prettier'] = dev_dependencies.get('prettier')
-                values['ESLint'] = dev_dependencies.get('eslint')
-                values['Stylelint'] = dev_dependencies.get('stylelint')
+                except ValueError:
+                    pass
+                values['Vite'] = dependencies.get('vite')
+                values['Prettier'] = dependencies.get('prettier')
+                values['ESLint'] = dependencies.get('eslint')
+                values['Stylelint'] = dependencies.get('stylelint')
         return values
 
     def get_docker_values(self, url, default_branch):
