@@ -5,7 +5,7 @@
 import github_inventory_settings as settings
 from dao.github import GitHub_DAO
 from dao.google import GoogleSheet_DAO
-from utils import get_repo_values
+from utils import get_repo_values, get_webapp_values
 import logging
 import sys
 
@@ -25,14 +25,23 @@ if __name__ == '__main__':
         github_org = getattr(settings, 'GITHUB_ORG', '')
 
         repo_list = []
+        webapp_list = []
         for repo in GitHub_DAO().get_repositories_for_org(github_org):
             if not repo.get('archived'):  # Active repos only
-                repo_list.append(get_repo_values(repo))
+                repo_values, webapp_values = get_repo_values(repo)
+                repo_list.append(repo_values)
+                if webapp_values:
+                    webapp_list.append(webapp_values)
 
         GoogleSheet_DAO().update_sheet(
             getattr(settings, 'GOOGLE_SHEET_ID', ''),
-            getattr(settings, 'WORKSHEET_NAME', ''),
+            getattr(settings, 'REPO_WORKSHEET_NAME', ''),
             repo_list)
+
+        GoogleSheet_DAO().update_sheet(
+            getattr(settings, 'GOOGLE_SHEET_ID', ''),
+            getattr(settings, 'WEBAPP_WORKSHEET_NAME', ''),
+            webapp_list)
 
     except Exception as e:
         logger.exception(e)

@@ -11,6 +11,7 @@ import re
 JS_RE = re.compile(r'.*\.js$')
 CSS_RE = re.compile(r'.*\.(?:css|less)$')
 DJANGO_RE = re.compile(r'[\'"]django([~=>].*)?[\'"]', re.I)
+COMPRESSOR_RE = re.compile(r'[\'"]django-compressor([~=>].*)?[\'"]', re.I)
 DJANGO_CONTAINER_RE = re.compile(r'FROM .*:(.*) as .*')
 DJANGO_CONTAINER_VERSION_RE = re.compile(r'ARG DJANGO_CONTAINER_VERSION=(.*)')
 
@@ -69,6 +70,33 @@ class GitHub_DAO():
                     has_css = True
         return (has_js, has_css)
 
+    def get_webapp_values(self, url, default_branch):
+        git_file_url = url.replace(
+            'https://github.com', 'https://raw.githubusercontent.com')
+        package_url = '{}/{}/package.json'.format(
+            git_file_url, default_branch)
+        values = {}
+
+        resp = self.get(package_url)
+        if resp.status_code == 200:
+            data = json.loads(resp.content)
+
+            dependencies = data.get('dependencies')
+            if dependencies:
+                values['Vue'] = dependencies.get('vue')
+                values['Webpack'] = dependencies.get('webpack')
+                values['axdd-components'] = dependencies.get('axdd-components')
+                values['Bootstrap'] = dependencies.get('bootstrap')
+                values['Bootstrap Icons'] = dependencies.get('bootstrap-icons')
+
+            dev_dependencies = data.get('devDependencies')
+            if dev_dependencies:
+                values['Vite'] = dev_dependencies.get('vite')
+                values['Prettier'] = dev_dependencies.get('prettier')
+                values['ESLint'] = dev_dependencies.get('eslint')
+                values['Stylelint'] = dev_dependencies.get('stylelint')
+        return values
+
     def get_docker_values(self, url, default_branch):
         git_file_url = url.replace(
             'https://github.com', 'https://raw.githubusercontent.com')
@@ -94,12 +122,18 @@ class GitHub_DAO():
 
         resp = self.get(setup_url)
         if resp.status_code == 200:
+            content = resp.content.decode('utf-8')
             values['Django'] = 'N/A'
 
-            results = DJANGO_RE.findall(resp.content.decode('utf-8'))
+            results = DJANGO_RE.findall(content)
             if len(results):
                 values['Django'] = results[0] if (
                     len(results[0])) else 'Unpinned'
+
+            results = COMPRESSOR_RE.findall(content)
+            if len(results):
+                values['django-compressor'] = True
+
         elif resp.status_code == 404:
             pyproject_url = '{}/{}/pyproject.toml'.format(
                 git_file_url, default_branch)
@@ -113,6 +147,8 @@ class GitHub_DAO():
                     values['Language'] = 'Python{}'.format(python_version)
                 values['Django'] = config.get(
                     'Django', config.get('django', 'N/A'))
+                if config.get('django-compressor'):
+                    values['django-compressor'] = True
         return values
 
     def get_repositories_for_org(self, org):
