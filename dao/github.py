@@ -139,12 +139,12 @@ class GitHub_DAO():
             results = DJANGO_RE.findall(content)
             if len(results):
                 values['Django'] = results[0] if (
-                    len(results[0])) else 'Unpinned'
+                    len(results[0])) else 'Latest'
 
             results = COMPRESSOR_RE.findall(content)
             if len(results):
                 values['django-compressor'] = results[0] if (
-                    len(results[0])) else 'Unpinned'
+                    len(results[0])) else 'Latest'
 
         elif resp.status_code == 404:
             pyproject_url = '{}/{}/pyproject.toml'.format(
@@ -159,8 +159,7 @@ class GitHub_DAO():
                     values['Language'] = 'Python{}'.format(python_version)
                 values['Django'] = config.get(
                     'Django', config.get('django', 'N/A'))
-                if config.get('django-compressor'):
-                    values['django-compressor'] = True
+                values['django-compressor'] = config.get('django-compressor')
         return values
 
     def get_repositories_for_org(self, org):
