@@ -83,20 +83,29 @@ class GitHub_DAO():
 
             for dependencies in [data.get('devDependencies', {}),
                                  data.get('dependencies', {})]:
-                values['Vue'] = dependencies.get('vue')
-                values['Webpack'] = dependencies.get('webpack')
-                values['Bootstrap'] = dependencies.get('bootstrap')
-                values['Bootstrap Icons'] = dependencies.get('bootstrap-icons')
-                try:
-                    url, version = dependencies.get(
-                        'axdd-components', '').split('#')
-                    values['axdd-components'] = version
-                except ValueError:
-                    pass
-                values['Vite'] = dependencies.get('vite')
-                values['Prettier'] = dependencies.get('prettier')
-                values['ESLint'] = dependencies.get('eslint')
-                values['Stylelint'] = dependencies.get('stylelint')
+                if dependencies.get('vue'):
+                    values['Vue'] = dependencies.get('vue')
+                if dependencies.get('webpack'):
+                    values['Webpack'] = dependencies.get('webpack')
+                if dependencies.get('bootstrap'):
+                    values['Bootstrap'] = dependencies.get('bootstrap')
+                if dependencies.get('bootstrap-icons'):
+                    values['Bootstrap Icons'] = dependencies['bootstrap-icons']
+                if dependencies.get('vite'):
+                    values['Vite'] = dependencies.get('vite')
+                if dependencies.get('prettier'):
+                    values['Prettier'] = dependencies.get('prettier')
+                if dependencies.get('eslint'):
+                    values['ESLint'] = dependencies.get('eslint')
+                if dependencies.get('stylelint'):
+                    values['Stylelint'] = dependencies.get('stylelint')
+                if dependencies.get('axdd-components'):
+                    try:
+                        u, version = dependencies['axdd-components'].split('#')
+                        if version:
+                            values['axdd-components'] = version
+                    except ValueError:
+                        pass
         return values
 
     def get_docker_values(self, url, default_branch):
