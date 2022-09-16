@@ -9,7 +9,7 @@ import toml
 import re
 
 JS_RE = re.compile(r'.*\.js$')
-CSS_RE = re.compile(r'.*\.(?:css|less)$')
+CSS_RE = re.compile(r'.*\.(?:css|scss|less)$')
 DJANGO_RE = re.compile(r'[\'"]django([~=>].*)?[\'"]', re.I)
 COMPRESSOR_RE = re.compile(r'[\'"]django-compressor([~=>].*)?[\'"]', re.I)
 DJANGO_CONTAINER_RE = re.compile(r'FROM .*:(.*) as .*')
