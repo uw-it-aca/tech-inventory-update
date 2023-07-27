@@ -13,10 +13,6 @@ database:
 repo: github-inventory
 instance: prod
 
-image:
-  repository: gcr.io/uwit-mci-axdd/github-inventory
-  tag: IMAGE_TAG
-
 gcsCredentials:
   mounted: true
   secretName: github-inventory.axdd.s.uw.edu-gcs-credentials

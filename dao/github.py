@@ -1,4 +1,4 @@
-# Copyright 2022 UW-IT, University of Washington
+# Copyright 2023 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
 import github_inventory_settings as settings
@@ -122,6 +122,8 @@ class GitHub_DAO():
                        DJANGO_CONTAINER_RE.match(content))
             if matches:
                 values['django-container'] = matches.group(1)
+                if 'FROM gcr.io' in content:
+                    values['django-container'] += ' (gcr.io)'
 
         return values
 
