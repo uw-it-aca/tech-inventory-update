@@ -58,6 +58,10 @@ def parse_github_action_values(repo, data):
                 'uw-it-aca/actions/publish-pypi' in step.get('uses')):
             values['PyPI'] = True
 
+    if config.get('env', {}).get('COVERAGE_PYTHON_VERSION'):
+        values['Language'] = 'Python{}'.format(
+            str(config.get('env').get('COVERAGE_PYTHON_VERSION')))
+
     return values
 
 
