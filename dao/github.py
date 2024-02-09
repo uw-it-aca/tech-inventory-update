@@ -1,4 +1,4 @@
-# Copyright 2023 UW-IT, University of Washington
+# Copyright 2024 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
 import github_inventory_settings as settings
@@ -121,9 +121,15 @@ class GitHub_DAO():
             matches = (DJANGO_CONTAINER_VERSION_RE.match(content) or
                        DJANGO_CONTAINER_RE.match(content))
             if matches:
-                values['django-container'] = matches.group(1)
+                container_version = matches.group(1)
+                values['django-container'] = container_version
                 if 'FROM gcr.io' in content:
                     values['django-container'] += ' (gcr.io)'
+
+                if container_version.startswith('1.'):
+                    values['Language'] = 'Python3.8'
+                elif container_version.startswith('2.'):
+                    values['Language'] = 'Python3.10'
 
         return values
 
@@ -158,7 +164,7 @@ class GitHub_DAO():
                 config = toml.loads(resp.content.decode('utf-8'))
                 python_version = config.get('Python', config.get('python'))
                 if python_version:
-                    values['Language'] = 'Python{}'.format(python_version)
+                    values['Language'] = f'Python{python_version}'
                 values['Django'] = config.get(
                     'Django', config.get('django', 'N/A'))
                 values['django-compressor'] = config.get('django-compressor')
