@@ -12,6 +12,8 @@ database:
 
 repo: github-inventory
 instance: prod
+namespace:
+  enabled: true
 
 gcsCredentials:
   mounted: true
