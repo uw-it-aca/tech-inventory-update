@@ -130,6 +130,8 @@ class GitHub_DAO():
                     values['Language'] = 'Python3.8'
                 elif container_version.startswith('2.'):
                     values['Language'] = 'Python3.10'
+                elif container_version.startswith('3.'):
+                    values['Language'] = 'Python3.12'
 
         return values
 
