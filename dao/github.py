@@ -1,4 +1,4 @@
-# Copyright 2025 UW-IT, University of Washington
+# Copyright 2026 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
 import github_inventory_settings as settings
@@ -130,6 +130,8 @@ class GitHub_DAO():
                     values['Language'] = 'Python3.8'
                 elif container_version.startswith('2.'):
                     values['Language'] = 'Python3.10'
+                elif container_version.startswith('3.'):
+                    values['Language'] = 'Python3.12'
 
         return values
 
