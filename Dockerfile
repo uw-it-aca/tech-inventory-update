@@ -1,8 +1,8 @@
-FROM python:3.10 AS app-container
+FROM python:3.12 AS app-container
 
 WORKDIR /app/
-ENV PYTHONUNBUFFERED 1
-ENV LOG_FILE stdout
+ENV PYTHONUNBUFFERED=1
+ENV LOG_FILE=stdout
 
 RUN groupadd -r acait -g 1000 && \
     useradd -u 1000 -rm -g acait -d /home/acait -s /bin/bash -c "container user" acait && \
