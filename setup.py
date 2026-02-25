@@ -19,7 +19,7 @@ setup(
         'toml',
     ],
     license='Apache License, Version 2.0',
-    description=('T&LS Technology spreadsheet updater'),
+    description=('UWIT Technology spreadsheet updater'),
     url='https://github.com/uw-it-aca/tech-inventory-update',
     classifiers=[
         'Intended Audience :: Developers',

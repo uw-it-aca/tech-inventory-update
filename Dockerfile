@@ -1,4 +1,4 @@
-FROM python:3.10 AS app-container
+FROM python:3.12 AS app-container
 
 WORKDIR /app/
 ENV PYTHONUNBUFFERED 1
