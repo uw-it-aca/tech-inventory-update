@@ -47,11 +47,13 @@ def parse_github_action_values(repo, data):
         if 'with' in step and 'python-version' in step.get('with'):
             values['Language'] = 'Python{}'.format(
                 str(step.get('with').get('python-version')))
-        if ('uses' in step and
-                'uw-it-aca/actions/python-linters' in step.get('uses') and
-                repo.get('license')):
-            values['License'] = (
-                repo.get('license').get('name') + ' with src headers')
+        if 'uses' in step:
+            if ('uw-it-aca/actions/python-linters' in step.get('uses') and
+                    repo.get('license')):
+                values['License'] = (
+                    repo.get('license').get('name') + ' with src headers')
+            if ('uw-it-aca/actions/container-vuln-scan') in step.get('uses'):
+                values['Trivy'] = True
 
     for step in config.get('jobs', {}).get('publish', {}).get('steps', []):
         if ('uses' in step and
@@ -61,47 +63,6 @@ def parse_github_action_values(repo, data):
     if config.get('env', {}).get('COVERAGE_PYTHON_VERSION'):
         values['Language'] = 'Python{}'.format(
             str(config.get('env').get('COVERAGE_PYTHON_VERSION')))
-
-    return values
-
-
-def parse_travis_values(repo, data):
-    values = {}
-    config = yaml.full_load(data)
-    python_versions = [str(x) for x in config.get('python', [])]
-    values['Language'] = 'Python{}'.format(','.join(
-        sorted(python_versions, reverse=True)))
-
-    for step in config.get('script', []):
-        if 0 == step.find('pycodestyle'):
-            values['Pycodestyle'] = True
-            matches = PYCODESTYLE_RE.match(step)
-            if matches:
-                excludes = matches.group(1).split(',')
-                for path in excludes:
-                    if path.find('migrations') == -1:
-                        values['Pycodestyle'] = 'Excludes'
-        elif 0 == step.find('pep8'):
-            values['Pycodestyle'] = 'Pep8'
-        elif 0 == step.find('jshint'):
-            values['JSHint'] = True
-        elif 0 == step.find('docker run'):
-            values['Pycodestyle'] = True
-
-    for step in (config.get('after_success', []) +
-                 config.get('after_script', [])):
-        if 0 == step.find('coveralls'):
-            for bstep in config.get('before_script', []):
-                if 0 == bstep.find('pip install python-coveralls'):
-                    values['Coveralls'] = 'python-coveralls'
-                elif 0 == bstep.find('pip install coveralls'):
-                    values['Coveralls'] = True
-
-    try:
-        if config.get('deploy', {}).get('provider', '') == 'pypi':
-            values['PyPI'] = True
-    except AttributeError:
-        pass
 
     return values
 
@@ -123,12 +84,12 @@ def get_repo_values(repo):
         'Last Updated': repo.get('pushed_at'),
         'License': repo.get('license').get('name') if (
             repo.get('license') is not None) else 'N/A',
-        'CI/CD': 'N/A',
         'Default Branch': default_branch,
         'Pycodestyle': False if (lang == 'Python') else 'N/A',
         'PyPI': False if (lang == 'Python') else 'N/A',
         'Django': None if (lang == 'Python') else 'N/A',
         'django-container': 'N/A',
+        'Trivy': False,
         'Coveralls': False,
         'Coverage': 0,
         'Version': None,
@@ -157,14 +118,7 @@ def get_repo_values(repo):
 
     resp = ghclient.get(ga_url)
     if resp.status_code == 200:
-        repo_values['CI/CD'] = 'github-actions'
         repo_values.update(parse_github_action_values(repo, resp.content))
-    else:
-        travis_url = '{}/{}/.travis.yml'.format(git_file_url, default_branch)
-        resp = ghclient.get(travis_url)
-        if resp.status_code == 200:
-            repo_values['CI/CD'] = 'travis-ci'
-            repo_values.update(parse_travis_values(repo, resp.content))
 
     repo_values['Version'] = ghclient.get_current_version(repo['releases_url'])
 
