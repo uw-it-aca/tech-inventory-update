@@ -6,6 +6,7 @@ from threading import local
 import requests
 import json
 import toml
+import yaml
 import re
 
 JS_RE = re.compile(r'.*\.js$')
@@ -70,7 +71,7 @@ class GitHub_DAO():
                     has_css = True
         return (has_js, has_css)
 
-    def get_webapp_values(self, url, default_branch):
+    def get_package_values(self, url, default_branch):
         git_file_url = url.replace(
             'https://github.com', 'https://raw.githubusercontent.com')
         package_url = '{}/{}/package.json'.format(
@@ -108,6 +109,24 @@ class GitHub_DAO():
                         pass
         return values
 
+    def get_prod_values(self, url, default_branch):
+        git_file_url = url.replace(
+            'https://github.com', 'https://raw.githubusercontent.com')
+        prod_values_url = '{}/{}/docker/prod-values.yml'.format(
+            git_file_url, default_branch)
+        values = {}
+
+        resp = self.get(prod_values_url)
+        if resp.status_code == 200:
+            config = yaml.full_load(resp.content)
+            ingress = []
+            if 'ingress' in config:
+                ingress.append('ingress-nginx')
+            if 'gateway' in config:
+                ingress.append('kgateway')
+            values['Ingress'] = ingress.join(',')
+        return values
+
     def get_docker_values(self, url, default_branch):
         git_file_url = url.replace(
             'https://github.com', 'https://raw.githubusercontent.com')
@@ -135,7 +154,7 @@ class GitHub_DAO():
 
         return values
 
-    def get_install_values(self, url, default_branch):
+    def get_setup_values(self, url, default_branch):
         git_file_url = url.replace(
             'https://github.com', 'https://raw.githubusercontent.com')
         setup_url = '{}/{}/setup.py'.format(git_file_url, default_branch)
