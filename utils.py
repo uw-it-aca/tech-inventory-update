@@ -89,6 +89,7 @@ def get_repo_values(repo):
         'PyPI': False if (lang == 'Python') else 'N/A',
         'Django': None if (lang == 'Python') else 'N/A',
         'django-container': 'N/A',
+        'Ingress': 'N/A',
         'Trivy': False,
         'Coveralls': False,
         'Coverage': 0,
@@ -124,12 +125,13 @@ def get_repo_values(repo):
 
     if ((lang is not None and lang.startswith('Python')) or (
             repo_values['Pycodestyle'])):
-        repo_values.update(ghclient.get_install_values(url, default_branch))
+        repo_values.update(ghclient.get_setup_values(url, default_branch))
         webapp_values['Django'] = repo_values['Django']
 
         if (repo_values['Django'] is not None and
                 repo_values['Django'] != 'N/A'):
             repo_values.update(ghclient.get_docker_values(url, default_branch))
+            repo_values.update(ghclient.get_prod_values(url, default_branch))
 
     if repo_values['Coveralls']:
         (coverage, js_coverage) = Coveralls_DAO().get_coverage(url, has_js)
@@ -146,7 +148,7 @@ def get_repo_values(repo):
         pass
 
     if has_js and has_css:
-        webapp_values.update(ghclient.get_webapp_values(url, default_branch))
+        webapp_values.update(ghclient.get_package_values(url, default_branch))
         return repo_values, webapp_values
     else:
         return repo_values, None
