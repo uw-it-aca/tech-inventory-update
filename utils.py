@@ -85,11 +85,11 @@ def get_repo_values(repo):
         'License': repo.get('license').get('name') if (
             repo.get('license') is not None) else 'N/A',
         'Default Branch': default_branch,
-        'Ingress': None,
         'Pycodestyle': False if (lang == 'Python') else 'N/A',
         'PyPI': False if (lang == 'Python') else 'N/A',
         'Django': None if (lang == 'Python') else 'N/A',
         'django-container': 'N/A',
+        'Ingress': 'N/A',
         'Trivy': False,
         'Coveralls': False,
         'Coverage': 0,
