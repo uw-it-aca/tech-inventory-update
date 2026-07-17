@@ -119,12 +119,12 @@ class GitHub_DAO():
         resp = self.get(prod_values_url)
         if resp.status_code == 200:
             config = yaml.full_load(resp.content)
-            ingress = []
+            ingresses = []
             if 'ingress' in config:
-                ingress.append('ingress-nginx')
+                ingresses.append('ingress-nginx')
             if 'gateway' in config:
-                ingress.append('kgateway')
-            values['Ingress'] = ingress.join(',')
+                ingresses.append('kgateway')
+            values['Ingress'] = ','.join(ingresses)
         return values
 
     def get_docker_values(self, url, default_branch):
