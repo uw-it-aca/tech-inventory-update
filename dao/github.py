@@ -120,9 +120,11 @@ class GitHub_DAO():
         if resp.status_code == 200:
             config = yaml.full_load(resp.content)
             ingresses = []
-            if 'ingress' in config:
+            if ('ingress' in config and 'enabled' in config['ingress'] and
+                    config['ingress']['enabled'] is True):
                 ingresses.append('ingress-nginx')
-            if 'gateway' in config:
+            if ('gateway' in config and 'enabled' in config['gateway'] and
+                    config['gateway']['enabled'] is True):
                 ingresses.append('kgateway')
             values['Ingress'] = ','.join(ingresses)
         return values
