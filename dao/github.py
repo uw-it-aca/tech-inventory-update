@@ -126,7 +126,8 @@ class GitHub_DAO():
             if ('gateway' in config and 'enabled' in config['gateway'] and
                     config['gateway']['enabled'] is True):
                 ingresses.append('kgateway')
-            values['Ingress'] = ','.join(ingresses)
+            if len(ingresses):
+                values['Ingress'] = ','.join(ingresses)
         return values
 
     def get_docker_values(self, url, default_branch):
