@@ -1,10 +1,12 @@
 # Copyright 2026 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
-from dao.github import GitHub_DAO
-from dao.coveralls import Coveralls_DAO
-import yaml
 import re
+
+import yaml
+
+from dao.coveralls import Coveralls_DAO
+from dao.github import GitHub_DAO
 
 PYCODESTYLE_RE = re.compile(r'.*--exclude=(.*)')
 
@@ -31,12 +33,14 @@ def parse_github_action_values(repo, data):
         if 'with' in step and 'python-version' in step.get('with'):
             values['Language'] = 'Python{}'.format(
                 str(step.get('with').get('python-version')))
-        if ('uses' in step and
-                'uw-it-aca/actions/python-linters' in step.get('uses')):
-            values['Pycodestyle'] = True
+        if 'uses' in step and 'uw-it-aca/actions/python-linters' in step.get('uses'):
             if repo.get('license'):
                 values['License'] = (
                     repo.get('license').get('name') + ' with src headers')
+            if 'with' in step and 'linter' in step.get('with'):
+                values['Linter'] = step.get('with').get('linter').capitalize()
+            if ('uw-it-aca/actions/container-vuln-scan') in step.get('uses'):
+                values['Trivy'] = True
 
     for step in config.get('jobs', {}).get('build', {}).get('steps', []):
         if ('run' in step and ('docker/test.sh' in step.get('run') or
@@ -47,11 +51,12 @@ def parse_github_action_values(repo, data):
         if 'with' in step and 'python-version' in step.get('with'):
             values['Language'] = 'Python{}'.format(
                 str(step.get('with').get('python-version')))
-        if 'uses' in step:
-            if ('uw-it-aca/actions/python-linters' in step.get('uses') and
-                    repo.get('license')):
+        if 'uses' in step and 'uw-it-aca/actions/python-linters' in step.get('uses'):
+            if repo.get('license'):
                 values['License'] = (
                     repo.get('license').get('name') + ' with src headers')
+            if 'with' in step and 'linter' in step.get('with'):
+                values['Linter'] = step.get('with').get('linter').capitalize()
             if ('uw-it-aca/actions/container-vuln-scan') in step.get('uses'):
                 values['Trivy'] = True
 
@@ -85,7 +90,7 @@ def get_repo_values(repo):
         'License': repo.get('license').get('name') if (
             repo.get('license') is not None) else 'N/A',
         'Default Branch': default_branch,
-        'Pycodestyle': False if (lang == 'Python') else 'N/A',
+        'Linter': 'Ruff' if (lang == 'Python') else 'N/A',
         'PyPI': False if (lang == 'Python') else 'N/A',
         'Django': None if (lang == 'Python') else 'N/A',
         'django-container': 'N/A',
@@ -114,8 +119,7 @@ def get_repo_values(repo):
         'Coverage': False if has_js else 'N/A',
     }
 
-    ga_url = '{}/{}/.github/workflows/cicd.yml'.format(
-        git_file_url, default_branch)
+    ga_url = f'{git_file_url}/{default_branch}/.github/workflows/cicd.yml'
 
     resp = ghclient.get(ga_url)
     if resp.status_code == 200:

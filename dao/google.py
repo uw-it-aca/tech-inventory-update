@@ -1,13 +1,15 @@
 # Copyright 2026 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
-import github_inventory_settings as settings
 from threading import local
-from utils import stringify
+
+import github_inventory_settings as settings
 import gspread
 
+from utils import stringify
 
-class GoogleSheet_DAO():
+
+class GoogleSheet_DAO:
     def __init__(self):
         self._local = local()
 

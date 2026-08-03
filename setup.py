@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+
 from setuptools import setup
 
 # allow setup.py to be run from any path
