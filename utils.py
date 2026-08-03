@@ -27,7 +27,7 @@ def parse_github_action_values(repo, data):
     for step in config.get('jobs', {}).get('test', {}).get('steps', []):
         if 'run' in step:
             if step.get('run').startswith('pycodestyle'):
-                values['Pycodestyle'] = True
+                values['Linter'] = 'Pycodestyle'
             elif step.get('run').startswith('coveralls'):
                 values['Coveralls'] = True
         if 'with' in step and 'python-version' in step.get('with'):
@@ -45,7 +45,6 @@ def parse_github_action_values(repo, data):
     for step in config.get('jobs', {}).get('build', {}).get('steps', []):
         if ('run' in step and ('docker/test.sh' in step.get('run') or
                                'docker/test_python.sh' in step.get('run'))):
-            values['Pycodestyle'] = True
             values['JSHint'] = True
             values['Coveralls'] = True
         if 'with' in step and 'python-version' in step.get('with'):
@@ -128,7 +127,7 @@ def get_repo_values(repo):
     repo_values['Version'] = ghclient.get_current_version(repo['releases_url'])
 
     if ((lang is not None and lang.startswith('Python')) or (
-            repo_values['Pycodestyle'])):
+            repo_values['Linter'] != 'N/A')):
         repo_values.update(ghclient.get_setup_values(url, default_branch))
         webapp_values['Django'] = repo_values['Django']
 
