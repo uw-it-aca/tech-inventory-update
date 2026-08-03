@@ -33,14 +33,15 @@ def parse_github_action_values(repo, data):
         if 'with' in step and 'python-version' in step.get('with'):
             values['Language'] = 'Python{}'.format(
                 str(step.get('with').get('python-version')))
-        if 'uses' in step and 'uw-it-aca/actions/python-linters' in step.get('uses'):
-            if repo.get('license'):
-                values['License'] = (
-                    repo.get('license').get('name') + ' with src headers')
-            if 'with' in step and 'linter' in step.get('with'):
-                values['Linter'] = step.get('with').get('linter').capitalize()
-            if ('uw-it-aca/actions/container-vuln-scan') in step.get('uses'):
-                values['Trivy'] = True
+        if 'uses' in step:
+            if 'uw-it-aca/actions/python-linters' in step.get('uses'):
+                if repo.get('license'):
+                    values['License'] = (
+                        repo.get('license').get('name') + ' with src headers')
+                if 'with' in step and 'linter' in step.get('with'):
+                    values['Linter'] = step.get('with').get('linter').capitalize()
+            elif 'uw-it-aca/actions/container-vuln-scan' in step.get('uses'):
+                values['Trivy'] = 'Yes'
 
     for step in config.get('jobs', {}).get('build', {}).get('steps', []):
         if ('run' in step and ('docker/test.sh' in step.get('run') or
@@ -50,14 +51,15 @@ def parse_github_action_values(repo, data):
         if 'with' in step and 'python-version' in step.get('with'):
             values['Language'] = 'Python{}'.format(
                 str(step.get('with').get('python-version')))
-        if 'uses' in step and 'uw-it-aca/actions/python-linters' in step.get('uses'):
-            if repo.get('license'):
-                values['License'] = (
-                    repo.get('license').get('name') + ' with src headers')
-            if 'with' in step and 'linter' in step.get('with'):
-                values['Linter'] = step.get('with').get('linter').capitalize()
-            if ('uw-it-aca/actions/container-vuln-scan') in step.get('uses'):
-                values['Trivy'] = True
+        if 'uses' in step:
+            if 'uw-it-aca/actions/python-linters' in step.get('uses'):
+                if repo.get('license'):
+                    values['License'] = (
+                        repo.get('license').get('name') + ' with src headers')
+                if 'with' in step and 'linter' in step.get('with'):
+                    values['Linter'] = step.get('with').get('linter').capitalize()
+            elif 'uw-it-aca/actions/container-vuln-scan' in step.get('uses'):
+                values['Trivy'] = 'Yes'
 
     for step in config.get('jobs', {}).get('publish', {}).get('steps', []):
         if ('uses' in step and
@@ -94,7 +96,7 @@ def get_repo_values(repo):
         'Django': None if (lang == 'Python') else 'N/A',
         'django-container': 'N/A',
         'Ingress': 'N/A',
-        'Trivy': False,
+        'Trivy': 'No' if (lang == 'Python') else 'N/A',
         'Coveralls': False,
         'Coverage': 0,
         'Version': None,
