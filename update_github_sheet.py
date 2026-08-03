@@ -2,13 +2,14 @@
 # Copyright 2026 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
-import github_inventory_settings as settings
-from dao.github import GitHub_DAO
-from dao.google import GoogleSheet_DAO
-from utils import get_repo_values
 import logging
 import sys
 
+import github_inventory_settings as settings
+
+from dao.github import GitHub_DAO
+from dao.google import GoogleSheet_DAO
+from utils import get_repo_values
 
 # setup basic logging
 logging.basicConfig(level=logging.INFO,
@@ -44,5 +45,5 @@ if __name__ == '__main__':
             webapp_list)
 
     except Exception as e:
-        logger.exception(e)
+        logger.exception()
         logger.critical(e)

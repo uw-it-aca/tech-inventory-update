@@ -1,23 +1,24 @@
 # Copyright 2026 UW-IT, University of Washington
 # SPDX-License-Identifier: Apache-2.0
 
-import github_inventory_settings as settings
-from threading import local
-import requests
 import json
+import re
+from threading import local
+
+import github_inventory_settings as settings
+import requests
 import toml
 import yaml
-import re
 
 JS_RE = re.compile(r'.*\.js$')
 CSS_RE = re.compile(r'.*\.(?:css|scss|less)$')
-DJANGO_RE = re.compile(r'[\'"]django([~=>].*)?[\'"]', re.I)
-COMPRESSOR_RE = re.compile(r'[\'"]django-compressor([~=>].*)?[\'"]', re.I)
+DJANGO_RE = re.compile(r'[\'"]django([~=>].*)?[\'"]', re.IGNORECASE)
+COMPRESSOR_RE = re.compile(r'[\'"]django-compressor([~=>].*)?[\'"]', re.IGNORECASE)
 DJANGO_CONTAINER_RE = re.compile(r'FROM .*:(.*) as .*')
 DJANGO_CONTAINER_VERSION_RE = re.compile(r'ARG DJANGO_CONTAINER_VERSION=(.*)')
 
 
-class GitHub_DAO():
+class GitHub_DAO:
     def __init__(self):
         self._local = local()
 
@@ -27,26 +28,30 @@ class GitHub_DAO():
             access_token = getattr(settings, 'GITHUB_TOKEN', '')
 
             if not access_token:
-                raise Exception(
+                raise Exception(  # noqa: TRY002
                     'Need a GITHUB_TOKEN with access to github org')
 
             client = requests.Session()
             client.headers.update({
-                'Authorization': 'token {}'.format(access_token),
+                'Authorization': f'token {access_token}',
                 'Accept': 'application/vnd.github.v3+json',
                 'User-Agent': '{}/github-inventory-updater'.format(
                     getattr(settings, 'GITHUB_ORG', ''))})
             self._local.client = client
         return self._local.client
 
-    def get(self, url, headers={}):
+    def get(self, url, headers=None):
+        if headers is None:
+            headers = {}
+
         resp = self.client.get(url, headers=headers)
         if resp.status_code in getattr(settings, 'GITHUB_OK_STATUS', []):
             return resp
 
-        raise Exception(
-            'GitHub request failed, URL: {}, Status: {}, Response: {}'.format(
-                url, resp.status_code, resp.content))
+        raise Exception(  # noqa: TRY002
+            f'GitHub request failed, URL: {url}, Status: {resp.status_code}, '
+            f'Response: {resp.content}'
+        )
 
     def get_current_version(self, url):
         url = url.replace('{/id}', '/latest')
@@ -56,7 +61,7 @@ class GitHub_DAO():
             return data.get('tag_name')
 
     def get_has_statics(self, url, default_branch):
-        url = url.replace('{/sha}', '/{}?recursive=1'.format(default_branch))
+        url = url.replace('{/sha}', f'/{default_branch}?recursive=1')
         resp = self.get(url)
         has_js = False
         has_css = False
@@ -74,8 +79,7 @@ class GitHub_DAO():
     def get_package_values(self, url, default_branch):
         git_file_url = url.replace(
             'https://github.com', 'https://raw.githubusercontent.com')
-        package_url = '{}/{}/package.json'.format(
-            git_file_url, default_branch)
+        package_url = f'{git_file_url}/{default_branch}/package.json'
         values = {}
 
         resp = self.get(package_url)
@@ -102,7 +106,7 @@ class GitHub_DAO():
                     values['Stylelint'] = dependencies.get('stylelint')
                 if dependencies.get('axdd-components'):
                     try:
-                        u, version = dependencies['axdd-components'].split('#')
+                        _u, version = dependencies['axdd-components'].split('#')
                         if version:
                             values['axdd-components'] = version
                     except ValueError:
@@ -112,8 +116,7 @@ class GitHub_DAO():
     def get_prod_values(self, url, default_branch):
         git_file_url = url.replace(
             'https://github.com', 'https://raw.githubusercontent.com')
-        prod_values_url = '{}/{}/docker/prod-values.yml'.format(
-            git_file_url, default_branch)
+        prod_values_url = f'{git_file_url}/{default_branch}/docker/prod-values.yml'
         values = {}
 
         resp = self.get(prod_values_url)
@@ -133,8 +136,7 @@ class GitHub_DAO():
     def get_docker_values(self, url, default_branch):
         git_file_url = url.replace(
             'https://github.com', 'https://raw.githubusercontent.com')
-        dockerfile_url = '{}/{}/Dockerfile'.format(
-            git_file_url, default_branch)
+        dockerfile_url = f'{git_file_url}/{default_branch}/Dockerfile'
         values = {}
 
         resp = self.get(dockerfile_url)
@@ -160,7 +162,7 @@ class GitHub_DAO():
     def get_setup_values(self, url, default_branch):
         git_file_url = url.replace(
             'https://github.com', 'https://raw.githubusercontent.com')
-        setup_url = '{}/{}/setup.py'.format(git_file_url, default_branch)
+        setup_url = f'{git_file_url}/{default_branch}/setup.py'
         values = {}
 
         resp = self.get(setup_url)
@@ -179,8 +181,7 @@ class GitHub_DAO():
                     len(results[0])) else 'Latest'
 
         elif resp.status_code == 404:
-            pyproject_url = '{}/{}/pyproject.toml'.format(
-                git_file_url, default_branch)
+            pyproject_url = f'{git_file_url}/{default_branch}/pyproject.toml'
             resp = self.get(pyproject_url)
             if resp.status_code == 200:
                 values['Django'] = 'N/A'
@@ -195,7 +196,7 @@ class GitHub_DAO():
         return values
 
     def get_repositories_for_org(self, org):
-        url = 'https://api.github.com/orgs/{}/repos?per_page=100'.format(org)
+        url = f'https://api.github.com/orgs/{org}/repos?per_page=100'
 
         resp = self.get(url)
         repos = json.loads(resp.content)
