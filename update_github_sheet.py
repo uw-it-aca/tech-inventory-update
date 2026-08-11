@@ -45,5 +45,5 @@ if __name__ == '__main__':
             webapp_list)
 
     except Exception as ex:
-        logger.exception(f'ERROR: {ex}')
+        logger.exception('ERROR')
         logger.critical(ex)
