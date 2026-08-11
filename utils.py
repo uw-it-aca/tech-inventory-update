@@ -76,7 +76,7 @@ def parse_github_action_values(repo, data):
 def get_repo_values(repo):
     ghclient = GitHub_DAO()
     url = repo['html_url']
-    lang = repo['language']
+    lang = repo['language'] or ''
     default_branch = repo['default_branch']
     git_file_url = url.replace(
         'https://github.com', 'https://raw.githubusercontent.com')
@@ -91,12 +91,12 @@ def get_repo_values(repo):
         'License': repo.get('license').get('name') if (
             repo.get('license') is not None) else 'N/A',
         'Default Branch': default_branch,
-        'Linter': 'Ruff' if (lang == 'Python') else 'N/A',
-        'PyPI': False if (lang == 'Python') else 'N/A',
-        'Django': None if (lang == 'Python') else 'N/A',
+        'Linter': 'Ruff' if lang.startswith('Python') else 'N/A',
+        'PyPI': False if lang.startswith('Python') else 'N/A',
+        'Django': None if lang.startswith('Python') else 'N/A',
         'django-container': 'N/A',
         'Ingress': 'N/A',
-        'Trivy': 'No' if (lang == 'Python') else 'N/A',
+        'Trivy': 'No' if lang.startswith('Python') else 'N/A',
         'Coveralls': False,
         'Coverage': 0,
         'Version': None,
@@ -105,7 +105,7 @@ def get_repo_values(repo):
     webapp_values = {
         'URL': url,
         'Name': repo.get('name'),
-        'Django': None if (lang == 'Python') else 'N/A',
+        'Django': None if lang.startswith('Python') else 'N/A',
         'Vue': None,
         'Vite': None,
         'Webpack': None,
@@ -128,8 +128,7 @@ def get_repo_values(repo):
 
     repo_values['Version'] = ghclient.get_current_version(repo['releases_url'])
 
-    if ((lang is not None and lang.startswith('Python')) or (
-            repo_values['Linter'] != 'N/A')):
+    if lang.startswith('Python'):
         repo_values.update(ghclient.get_setup_values(url, default_branch))
         webapp_values['Django'] = repo_values['Django']
 
