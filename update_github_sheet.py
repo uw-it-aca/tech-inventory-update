@@ -46,4 +46,4 @@ if __name__ == '__main__':
 
     except Exception as ex:
         logger.exception(f'ERROR: {ex}')
-        logger.critical(e)
+        logger.critical(ex)
