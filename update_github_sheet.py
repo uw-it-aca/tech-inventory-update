@@ -30,6 +30,12 @@ if __name__ == '__main__':
         for repo in GitHub_DAO().get_repositories_for_org(github_org):
             if not repo.get('archived'):  # Active repos only
                 repo_values, webapp_values = get_repo_values(repo)
+                logger.info(
+                    f'Name: {repo_values["Name"]}, '
+                    f'Language: {repo_values["Language"]}, '
+                    f'Django: {repo_values["Django"]}'
+                )
+
                 repo_list.append(repo_values)
                 if webapp_values:
                     webapp_list.append(webapp_values)
