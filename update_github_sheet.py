@@ -44,6 +44,6 @@ if __name__ == '__main__':
             getattr(settings, 'WEBAPP_WORKSHEET_NAME', ''),
             webapp_list)
 
-    except Exception as e:
-        logger.exception()
+    except Exception as ex:
+        logger.exception(f'ERROR: {ex}')
         logger.critical(e)
