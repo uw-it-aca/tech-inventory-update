@@ -34,7 +34,7 @@ class Coveralls_DAO:
                 covered_percent = data.get('covered_percent', 0) or 0
                 coverage = int(float(covered_percent) * 10) / 10.0
             except AttributeError as err:
-                logger.error(f'Error determining coverage for {coveralls_ur}: '
+                logger.error(f'Error determining coverage for {coveralls_url}: '
                              f'covered_percent: {covered_percent}, {err}')
                 return (coverage, has_js_coverage)
 
