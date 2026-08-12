@@ -25,6 +25,7 @@ class GitHub_DAO:
     @property
     def client(self):
         if not hasattr(self._local, 'client'):
+            github_org = getattr(settings, 'GITHUB_ORG', '')
             access_token = getattr(settings, 'GITHUB_TOKEN', '')
 
             if not access_token:
@@ -35,8 +36,8 @@ class GitHub_DAO:
             client.headers.update({
                 'Authorization': f'token {access_token}',
                 'Accept': 'application/vnd.github.v3+json',
-                'User-Agent': '{}/github-inventory-updater'.format(
-                    getattr(settings, 'GITHUB_ORG', ''))})
+                'User-Agent': f'{github_org}/github-inventory-updater',
+            })
             self._local.client = client
         return self._local.client
 

@@ -44,8 +44,7 @@ def parse_github_action_values(repo, data):
                 values['Trivy'] = 'Yes'
 
     for step in config.get('jobs', {}).get('build', {}).get('steps', []):
-        if ('run' in step and ('docker/test.sh' in step.get('run') or
-                               'docker/test_python.sh' in step.get('run'))):
+        if 'run' in step and 'coveralls' in step.get('run'):
             values['JSHint'] = True
             values['Coveralls'] = True
         if 'with' in step and 'python-version' in step.get('with'):
@@ -117,7 +116,7 @@ def get_repo_values(repo):
         'ESLint': None,
         'Stylint': None,
         'JSHint': False if has_js else 'N/A',
-        'Coverage': False if has_js else 'N/A',
+        'Coverage': 0 if has_js else 'N/A',
     }
 
     ga_url = f'{git_file_url}/{default_branch}/.github/workflows/cicd.yml'

@@ -43,7 +43,6 @@ class Coveralls_DAO:
                 if resp.status_code == 200:
                     data = json.loads(resp.content)
                     if data.get('selected_source_files_count', 0) > 0:
-                        has_js_coverage = data.get(
-                            'paths_covered_percent', 0) > 0
+                        has_js_coverage = data.get('paths_covered_percent', 0) > 0
 
         return (coverage, has_js_coverage)
