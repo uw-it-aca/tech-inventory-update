@@ -31,6 +31,7 @@ class Coveralls_DAO:
                 covered_percent = data.get('covered_percent', 0) or 0
                 coverage = int(float(covered_percent) * 10) / 10.0
             except AttributeError:
+                logger.info(f'AttributeError: coverage {coverage}')
                 return (coverage, has_js_coverage)
 
             if has_js:
@@ -43,7 +44,6 @@ class Coveralls_DAO:
                 if resp.status_code == 200:
                     data = json.loads(resp.content)
                     if data.get('selected_source_files_count', 0) > 0:
-                        has_js_coverage = data.get(
-                            'paths_covered_percent', 0) > 0
+                        has_js_coverage = data.get('paths_covered_percent', 0) > 0
 
         return (coverage, has_js_coverage)
