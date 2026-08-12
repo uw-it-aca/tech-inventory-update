@@ -31,13 +31,13 @@ def parse_github_action_values(repo, data):
             elif step.get('run').startswith('coveralls'):
                 values['Coveralls'] = True
         if 'with' in step and 'python-version' in step.get('with'):
-            values['Language'] = 'Python{}'.format(
-                str(step.get('with').get('python-version')))
+            python_version = step.get('with').get('python-version')
+            values['Language'] = f'Python{python_version}'
         if 'uses' in step:
             if 'uw-it-aca/actions/python-linters' in step.get('uses'):
                 if repo.get('license'):
-                    values['License'] = (
-                        repo.get('license').get('name') + ' with src headers')
+                    license_name = repo.get('license').get('name')
+                    values['License'] = f'{license_name} with src headers'
                 if 'with' in step and 'linter' in step.get('with'):
                     values['Linter'] = step.get('with').get('linter').capitalize()
             elif 'uw-it-aca/actions/container-vuln-scan' in step.get('uses'):
@@ -48,13 +48,13 @@ def parse_github_action_values(repo, data):
             values['JSHint'] = True
             values['Coveralls'] = True
         if 'with' in step and 'python-version' in step.get('with'):
-            values['Language'] = 'Python{}'.format(
-                str(step.get('with').get('python-version')))
+            python_version = step.get('with').get('python-version')
+            values['Language'] = f'Python{python_version}'
         if 'uses' in step:
             if 'uw-it-aca/actions/python-linters' in step.get('uses'):
                 if repo.get('license'):
-                    values['License'] = (
-                        repo.get('license').get('name') + ' with src headers')
+                    license_name = repo.get('license').get('name')
+                    values['License'] = f'{license_name} with src headers'
                 if 'with' in step and 'linter' in step.get('with'):
                     values['Linter'] = step.get('with').get('linter').capitalize()
             elif 'uw-it-aca/actions/container-vuln-scan' in step.get('uses'):
@@ -66,8 +66,8 @@ def parse_github_action_values(repo, data):
             values['PyPI'] = True
 
     if config.get('env', {}).get('COVERAGE_PYTHON_VERSION'):
-        values['Language'] = 'Python{}'.format(
-            str(config.get('env').get('COVERAGE_PYTHON_VERSION')))
+        python_version = config.get('env').get('COVERAGE_PYTHON_VERSION')
+        values['Language'] = 'Python{python_version}'
 
     return values
 
