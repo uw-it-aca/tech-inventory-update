@@ -2,9 +2,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import json
+import logging
 from threading import local
 
 import requests
+
+logger = logging.getLogger(__name__)
 
 
 class Coveralls_DAO:
@@ -21,7 +24,7 @@ class Coveralls_DAO:
         coveralls_url = repo_url.replace(
             'https://github.com', 'https://coveralls.io/github')
         coveralls_url += '.json'
-        coverage = None
+        coverage = 0
         has_js_coverage = False
 
         resp = self.client.get(coveralls_url)
@@ -30,7 +33,9 @@ class Coveralls_DAO:
             try:
                 covered_percent = data.get('covered_percent', 0) or 0
                 coverage = int(float(covered_percent) * 10) / 10.0
-            except AttributeError:
+            except AttributeError as err:
+                logger.error(f'Error determining coverage for {coveralls_ur}: '
+                             f'covered_percent: {covered_percent}, {err}')
                 return (coverage, has_js_coverage)
 
             if has_js:
@@ -44,5 +49,7 @@ class Coveralls_DAO:
                     data = json.loads(resp.content)
                     if data.get('selected_source_files_count', 0) > 0:
                         has_js_coverage = data.get('paths_covered_percent', 0) > 0
+        else:
+            logger.error(f'Error fetching {coveralls_url}: {resp}')
 
         return (coverage, has_js_coverage)

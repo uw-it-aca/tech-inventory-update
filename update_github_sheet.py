@@ -31,7 +31,7 @@ if __name__ == '__main__':
             if not repo.get('archived'):  # Active repos only
                 repo_values, webapp_values = get_repo_values(repo)
 
-                logger.info(', '.join(f"{k}: {v}" for k, v in repo_values.items()))
+                # logger.info(', '.join(f"{k}: {v}" for k, v in repo_values.items()))
 
                 repo_list.append(repo_values)
                 if webapp_values:
