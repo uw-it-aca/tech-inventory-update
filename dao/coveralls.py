@@ -42,9 +42,8 @@ class Coveralls_DAO:
             try:
                 raw_percent = soup.find_all('text')[-1].text or '0'
                 covered_percent = raw_percent.replace('%', '')
-                # covered_percent = html.split('coveralls_')[1].split('.svg')[0] or 0
                 coverage = int(float(covered_percent) * 10) / 10.0
-            except (AttributeError, IndexError) as err:
+            except Exception as err:
                 logger.error(f'Error determining coverage for {coveralls_url}: '
                              f'{err}, response: {html}')
                 return (coverage, has_js_coverage)
