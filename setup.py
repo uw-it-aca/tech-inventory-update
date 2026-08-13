@@ -18,6 +18,8 @@ setup(
         'gspread',
         'pyyaml',
         'toml',
+        'lxml',
+        'beautifulsoup4',
     ],
     license='Apache License, Version 2.0',
     description=('UWIT Technology spreadsheet updater'),
