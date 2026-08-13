@@ -29,13 +29,13 @@ class Coveralls_DAO:
 
         resp = self.client.get(coveralls_url)
         if resp.status_code == 200:
-            html = resp.text
+            html = resp.content.decode('utf-8')
             try:
                 covered_percent = html.split('coveralls_')[1].split('.svg')[0] or 0
                 coverage = int(float(covered_percent) * 10) / 10.0
             except (AttributeError, IndexError) as err:
                 logger.error(f'Error determining coverage for {coveralls_url}: '
-                             f'covered_percent: {covered_percent}, {err}')
+                             f'{err}, response: {html}')
                 return (coverage, has_js_coverage)
 
             if has_js:
