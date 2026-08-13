@@ -137,7 +137,7 @@ def get_repo_values(repo):
             repo_values.update(ghclient.get_prod_values(url, default_branch))
 
     if repo_values['Coveralls']:
-        (coverage, js_coverage) = Coveralls_DAO().get_coverage(url, has_js)
+        (coverage, js_coverage) = Coveralls_DAO().get_coverage(url, default_branch)
         repo_values['Coverage'] = coverage
         if has_js:
             webapp_values['Coverage'] = js_coverage
