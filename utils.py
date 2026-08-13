@@ -67,7 +67,7 @@ def parse_github_action_values(repo, data):
 
     if config.get('env', {}).get('COVERAGE_PYTHON_VERSION'):
         python_version = config.get('env').get('COVERAGE_PYTHON_VERSION')
-        values['Language'] = 'Python{python_version}'
+        values['Language'] = f'Python{python_version}'
 
     return values
 
