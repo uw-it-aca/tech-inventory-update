@@ -29,7 +29,7 @@ class Coveralls_DAO:
 
         resp = self.client.get(coveralls_url)
         if resp.status_code == 200:
-            html = resp.content
+            html = resp.text
             try:
                 covered_percent = html.split('coveralls_')[1].split('.svg')[0] or 0
                 coverage = int(float(covered_percent) * 10) / 10.0
