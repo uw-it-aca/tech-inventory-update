@@ -5,7 +5,9 @@ import json
 import logging
 from threading import local
 
+import github_inventory_settings as settings
 import requests
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,13 @@ class Coveralls_DAO:
     @property
     def client(self):
         if not hasattr(self._local, 'client'):
-            self._local.client = requests.Session()
+            github_org = getattr(settings, 'GITHUB_ORG', '')
+
+            client = requests.Session()
+            client.headers.update({
+                'User-Agent': f'{github_org}/github-inventory-updater',
+            })
+            self._local.client = client
         return self._local.client
 
     def get_coverage(self, repo_url, default_branch, has_js=False):
@@ -30,8 +38,11 @@ class Coveralls_DAO:
         resp = self.client.get(coveralls_url)
         if resp.status_code == 200:
             html = resp.content.decode('utf-8')
+            soup = BeautifulSoup(html, 'lxml')
             try:
-                covered_percent = html.split('coveralls_')[1].split('.svg')[0] or 0
+                covered_percent = soup.find_all('text')[-1].text or '0'
+                covered_percent.replace('%', '')
+                # covered_percent = html.split('coveralls_')[1].split('.svg')[0] or 0
                 coverage = int(float(covered_percent) * 10) / 10.0
             except (AttributeError, IndexError) as err:
                 logger.error(f'Error determining coverage for {coveralls_url}: '
