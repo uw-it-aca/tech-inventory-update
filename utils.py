@@ -60,6 +60,10 @@ def parse_github_action_values(repo, data):
             elif 'uw-it-aca/actions/container-vuln-scan' in step.get('uses'):
                 values['Trivy'] = 'Yes'
 
+    for step in config.get('jobs', {}).get('collect-coverage', {}).get('steps', []):
+        if 'run' in step and 'coveralls' in step.get('run'):
+            values['Coveralls'] = True
+
     for step in config.get('jobs', {}).get('publish', {}).get('steps', []):
         if ('uses' in step and
                 'uw-it-aca/actions/publish-pypi' in step.get('uses')):
@@ -126,15 +130,10 @@ def get_repo_values(repo):
         repo_values.update(parse_github_action_values(repo, resp.content))
 
     repo_values['Version'] = ghclient.get_current_version(repo['releases_url'])
-
-    if lang.startswith('Python'):
-        repo_values.update(ghclient.get_setup_values(url, default_branch))
-        webapp_values['Django'] = repo_values['Django']
-
-        if (repo_values['Django'] is not None and
-                repo_values['Django'] != 'N/A'):
-            repo_values.update(ghclient.get_docker_values(url, default_branch))
-            repo_values.update(ghclient.get_prod_values(url, default_branch))
+    repo_values.update(ghclient.get_setup_values(url, default_branch))
+    webapp_values['Django'] = repo_values.get('Django', 'N/A')
+    repo_values.update(ghclient.get_docker_values(url, default_branch))
+    repo_values.update(ghclient.get_prod_values(url, default_branch))
 
     if repo_values['Coveralls']:
         (coverage, js_coverage) = Coveralls_DAO().get_coverage(url, default_branch)
