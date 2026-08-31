@@ -132,6 +132,11 @@ class GitHub_DAO:
                 ingresses.append('kgateway')
             if len(ingresses):
                 values['Ingress'] = ','.join(ingresses)
+            for var in config.get('environmentVariables', []):
+                if (var['name'] == 'OPENSSL_CONF' and
+                        var['value'] == '/ssl/openssl.cnf'):
+                    values['OpenSSL Downgrade'] = 'Yes'
+                    break
         return values
 
     def get_docker_values(self, url, default_branch):
