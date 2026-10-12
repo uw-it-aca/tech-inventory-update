@@ -14,7 +14,7 @@ JS_RE = re.compile(r'.*\.js$')
 CSS_RE = re.compile(r'.*\.(?:css|scss|less)$')
 DJANGO_RE = re.compile(r'[\'"]django([~=>].*)?[\'"]', re.IGNORECASE)
 COMPRESSOR_RE = re.compile(r'[\'"]django-compressor([~=>].*)?[\'"]', re.IGNORECASE)
-DJANGO_CONTAINER_RE = re.compile(r'FROM .*:(.*) as .*')
+DJANGO_CONTAINER_RE = re.compile(r'FROM .*/django-container:(.*?) AS .*', re.IGNORECASE)
 DJANGO_CONTAINER_VERSION_RE = re.compile(r'ARG DJANGO_CONTAINER_VERSION=(.*)')
 
 
