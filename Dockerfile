@@ -11,6 +11,7 @@ RUN groupadd -r acait -g 1000 && \
 
 USER acait
 
+COPY --chown=acait:acait pyproject.toml /app/
 COPY --chown=acait:acait requirements.txt /app/
 RUN pip install -r requirements.txt
 
