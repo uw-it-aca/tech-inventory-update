@@ -30,7 +30,7 @@ dev = [
     "ruff",
 ]
 
-[tool.setuptools]
+[tool.setuptools.packages.find]
 where = ["."]
 
 [tool.setuptools.dynamic]
