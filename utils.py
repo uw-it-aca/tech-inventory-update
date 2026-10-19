@@ -104,6 +104,7 @@ def get_repo_values(repo):
         'Coverage': 0,
         'Version': None,
         'OpenSSL Downgrade': 'No',
+        'Configuration': 'N/A',
     }
 
     webapp_values = {
