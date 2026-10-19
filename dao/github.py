@@ -174,6 +174,7 @@ class GitHub_DAO:
         resp = self.get(setup_url)
         if resp.status_code == 200:
             content = resp.content.decode('utf-8')
+            values['Configuration'] = 'setup.py'
             values['Django'] = 'N/A'
 
             results = DJANGO_RE.findall(content)
@@ -190,6 +191,7 @@ class GitHub_DAO:
             pyproject_url = f'{git_file_url}/{default_branch}/pyproject.toml'
             resp = self.get(pyproject_url)
             if resp.status_code == 200:
+                values['Configuration'] = 'pyproject.toml'
                 values['Django'] = 'N/A'
 
                 config = toml.loads(resp.content.decode('utf-8'))
